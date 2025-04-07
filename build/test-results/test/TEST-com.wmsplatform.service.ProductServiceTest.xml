@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.wmsplatform.service.ProductServiceTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2025-04-07T08:57:10.348Z" hostname="Killians-MacBook-Air.local" time="0.975">
+<testsuite name="com.wmsplatform.service.ProductServiceTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2025-04-07T09:20:25.619Z" hostname="Killians-MacBook-Air.local" time="1.053">
   <properties/>
-  <testcase name="deleteProduct deletes existing product()" classname="com.wmsplatform.service.ProductServiceTest" time="0.785"/>
-  <testcase name="createProduct saves product when SKU is unique()" classname="com.wmsplatform.service.ProductServiceTest" time="0.114"/>
+  <testcase name="deleteProduct deletes existing product()" classname="com.wmsplatform.service.ProductServiceTest" time="0.828"/>
+  <testcase name="createProduct saves product when SKU is unique()" classname="com.wmsplatform.service.ProductServiceTest" time="0.123"/>
   <testcase name="getProductBySku returns product when found()" classname="com.wmsplatform.service.ProductServiceTest" time="0.002"/>
-  <testcase name="getProductById throws exception when product not found()" classname="com.wmsplatform.service.ProductServiceTest" time="0.003"/>
-  <testcase name="getAllProducts returns all products()" classname="com.wmsplatform.service.ProductServiceTest" time="0.055"/>
-  <testcase name="getProductById returns product when found()" classname="com.wmsplatform.service.ProductServiceTest" time="0.001"/>
+  <testcase name="getProductById throws exception when product not found()" classname="com.wmsplatform.service.ProductServiceTest" time="0.004"/>
+  <testcase name="getAllProducts returns all products()" classname="com.wmsplatform.service.ProductServiceTest" time="0.073"/>
+  <testcase name="getProductById returns product when found()" classname="com.wmsplatform.service.ProductServiceTest" time="0.002"/>
   <testcase name="deleteProduct throws exception when product not found()" classname="com.wmsplatform.service.ProductServiceTest" time="0.002"/>
-  <testcase name="updateProduct updates existing product()" classname="com.wmsplatform.service.ProductServiceTest" time="0.003"/>
-  <testcase name="updateStock updates stock quantity for existing product()" classname="com.wmsplatform.service.ProductServiceTest" time="0.003"/>
-  <testcase name="createProduct throws exception when SKU already exists()" classname="com.wmsplatform.service.ProductServiceTest" time="0.001"/>
-  <system-out><![CDATA[10:57:11.110 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/lang/Object
+  <testcase name="updateProduct updates existing product()" classname="com.wmsplatform.service.ProductServiceTest" time="0.004"/>
+  <testcase name="updateStock updates stock quantity for existing product()" classname="com.wmsplatform.service.ProductServiceTest" time="0.005"/>
+  <testcase name="createProduct throws exception when SKU already exists()" classname="com.wmsplatform.service.ProductServiceTest" time="0.003"/>
+  <system-out><![CDATA[11:20:26.422 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/lang/Object
 java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current version of Byte Buddy which officially supports Java 21 (65) - update Byte Buddy or set net.bytebuddy.experimental as a VM property
-	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:96)
+	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:100)
 	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default$ForInlining.create(TypeWriter.java:4011)
 	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default.make(TypeWriter.java:2224)
-	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase$UsingTypeWriter.make(DynamicType.java:4050)
-	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase.make(DynamicType.java:3734)
+	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase$UsingTypeWriter.make(DynamicType.java:4055)
+	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase.make(DynamicType.java:3739)
 	at io.mockk.proxy.jvm.transformation.InliningClassTransformer.transform(InliningClassTransformer.kt:81)
 	at java.instrument/java.lang.instrument.ClassFileTransformer.transform(ClassFileTransformer.java:242)
 	at java.instrument/sun.instrument.TransformerManager.transform(TransformerManager.java:188)
@@ -47,8 +47,7 @@ java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current
 	at io.mockk.proxy.jvm.advice.jvm.JvmMockKProxyInterceptor.interceptNoSuper(JvmMockKProxyInterceptor.java:45)
 	at com.wmsplatform.domain.repository.ProductRepository$Subclass0.deleteById(Unknown Source)
 	at com.wmsplatform.domain.repository.ProductRepository$Subclass0.deleteById(Unknown Source)
-	at com.wmsplatform.service.ProductServiceTest$deleteProduct deletes existing product$2.invoke(ProductServiceTest.kt:192)
-	at com.wmsplatform.service.ProductServiceTest$deleteProduct deletes existing product$2.invoke(ProductServiceTest.kt:192)
+	at com.wmsplatform.service.ProductServiceTest.deleteProduct_deletes_existing_product$lambda$30(ProductServiceTest.kt:192)
 	at io.mockk.impl.eval.RecordedBlockEvaluator$record$block$1.invoke(RecordedBlockEvaluator.kt:25)
 	at io.mockk.impl.eval.RecordedBlockEvaluator$enhanceWithRethrow$1.invoke(RecordedBlockEvaluator.kt:78)
 	at io.mockk.impl.recording.JvmAutoHinter.autoHint(JvmAutoHinter.kt:23)
@@ -109,11 +108,12 @@ java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current
 	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
 	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
 	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:107)
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:88)
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:54)
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:67)
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:52)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:147)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:127)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:90)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:55)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:102)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:54)
 	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:114)
 	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:86)
 	at org.junit.platform.launcher.core.DefaultLauncherSession$DelegatingLauncher.execute(DefaultLauncherSession.java:86)
@@ -137,13 +137,13 @@ java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current
 	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:71)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
-10:57:11.202 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/util/Optional
+11:20:26.518 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/util/Optional
 java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current version of Byte Buddy which officially supports Java 21 (65) - update Byte Buddy or set net.bytebuddy.experimental as a VM property
-	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:96)
+	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:100)
 	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default$ForInlining.create(TypeWriter.java:4011)
 	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default.make(TypeWriter.java:2224)
-	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase$UsingTypeWriter.make(DynamicType.java:4050)
-	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase.make(DynamicType.java:3734)
+	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase$UsingTypeWriter.make(DynamicType.java:4055)
+	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase.make(DynamicType.java:3739)
 	at io.mockk.proxy.jvm.transformation.InliningClassTransformer.transform(InliningClassTransformer.kt:81)
 	at java.instrument/java.lang.instrument.ClassFileTransformer.transform(ClassFileTransformer.java:242)
 	at java.instrument/sun.instrument.TransformerManager.transform(TransformerManager.java:188)
@@ -172,8 +172,7 @@ java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current
 	at io.mockk.proxy.jvm.advice.BaseAdvice.handle(BaseAdvice.kt:42)
 	at io.mockk.proxy.jvm.advice.jvm.JvmMockKProxyInterceptor.interceptNoSuper(JvmMockKProxyInterceptor.java:45)
 	at com.wmsplatform.domain.repository.ProductRepository$Subclass0.findBySku(Unknown Source)
-	at com.wmsplatform.service.ProductServiceTest$createProduct saves product when SKU is unique$1.invoke(ProductServiceTest.kt:96)
-	at com.wmsplatform.service.ProductServiceTest$createProduct saves product when SKU is unique$1.invoke(ProductServiceTest.kt:96)
+	at com.wmsplatform.service.ProductServiceTest.createProduct_saves_product_when_SKU_is_unique$lambda$9(ProductServiceTest.kt:96)
 	at io.mockk.impl.eval.RecordedBlockEvaluator$record$block$1.invoke(RecordedBlockEvaluator.kt:25)
 	at io.mockk.impl.eval.RecordedBlockEvaluator$enhanceWithRethrow$1.invoke(RecordedBlockEvaluator.kt:78)
 	at io.mockk.impl.recording.JvmAutoHinter.autoHint(JvmAutoHinter.kt:23)
@@ -234,11 +233,12 @@ java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current
 	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
 	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
 	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:107)
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:88)
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:54)
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:67)
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:52)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:147)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:127)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:90)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:55)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:102)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:54)
 	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:114)
 	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:86)
 	at org.junit.platform.launcher.core.DefaultLauncherSession$DelegatingLauncher.execute(DefaultLauncherSession.java:86)
@@ -262,13 +262,13 @@ java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current
 	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:71)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
-10:57:11.264 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/util/List
+11:20:26.590 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/util/List
 java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current version of Byte Buddy which officially supports Java 21 (65) - update Byte Buddy or set net.bytebuddy.experimental as a VM property
-	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:96)
+	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:100)
 	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default$ForInlining.create(TypeWriter.java:4011)
 	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default.make(TypeWriter.java:2224)
-	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase$UsingTypeWriter.make(DynamicType.java:4050)
-	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase.make(DynamicType.java:3734)
+	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase$UsingTypeWriter.make(DynamicType.java:4055)
+	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase.make(DynamicType.java:3739)
 	at io.mockk.proxy.jvm.transformation.InliningClassTransformer.transform(InliningClassTransformer.kt:81)
 	at java.instrument/java.lang.instrument.ClassFileTransformer.transform(ClassFileTransformer.java:242)
 	at java.instrument/sun.instrument.TransformerManager.transform(TransformerManager.java:188)
@@ -294,8 +294,7 @@ java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current
 	at io.mockk.proxy.jvm.advice.BaseAdvice.handle(BaseAdvice.kt:42)
 	at io.mockk.proxy.jvm.advice.jvm.JvmMockKProxyInterceptor.interceptNoSuper(JvmMockKProxyInterceptor.java:45)
 	at com.wmsplatform.domain.repository.ProductRepository$Subclass0.findAll(Unknown Source)
-	at com.wmsplatform.service.ProductServiceTest$getAllProducts returns all products$1.invoke(ProductServiceTest.kt:80)
-	at com.wmsplatform.service.ProductServiceTest$getAllProducts returns all products$1.invoke(ProductServiceTest.kt:80)
+	at com.wmsplatform.service.ProductServiceTest.getAllProducts_returns_all_products$lambda$7(ProductServiceTest.kt:80)
 	at io.mockk.impl.eval.RecordedBlockEvaluator$record$block$1.invoke(RecordedBlockEvaluator.kt:25)
 	at io.mockk.impl.eval.RecordedBlockEvaluator$enhanceWithRethrow$1.invoke(RecordedBlockEvaluator.kt:78)
 	at io.mockk.impl.recording.JvmAutoHinter.autoHint(JvmAutoHinter.kt:23)
@@ -356,11 +355,12 @@ java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current
 	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
 	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
 	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:107)
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:88)
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:54)
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:67)
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:52)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:147)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:127)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:90)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:55)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:102)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:54)
 	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:114)
 	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:86)
 	at org.junit.platform.launcher.core.DefaultLauncherSession$DelegatingLauncher.execute(DefaultLauncherSession.java:86)
@@ -384,13 +384,13 @@ java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current
 	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:71)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
-10:57:11.268 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/util/SequencedCollection
+11:20:26.595 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/util/SequencedCollection
 java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current version of Byte Buddy which officially supports Java 21 (65) - update Byte Buddy or set net.bytebuddy.experimental as a VM property
-	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:96)
+	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:100)
 	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default$ForInlining.create(TypeWriter.java:4011)
 	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default.make(TypeWriter.java:2224)
-	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase$UsingTypeWriter.make(DynamicType.java:4050)
-	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase.make(DynamicType.java:3734)
+	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase$UsingTypeWriter.make(DynamicType.java:4055)
+	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase.make(DynamicType.java:3739)
 	at io.mockk.proxy.jvm.transformation.InliningClassTransformer.transform(InliningClassTransformer.kt:81)
 	at java.instrument/java.lang.instrument.ClassFileTransformer.transform(ClassFileTransformer.java:242)
 	at java.instrument/sun.instrument.TransformerManager.transform(TransformerManager.java:188)
@@ -416,8 +416,7 @@ java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current
 	at io.mockk.proxy.jvm.advice.BaseAdvice.handle(BaseAdvice.kt:42)
 	at io.mockk.proxy.jvm.advice.jvm.JvmMockKProxyInterceptor.interceptNoSuper(JvmMockKProxyInterceptor.java:45)
 	at com.wmsplatform.domain.repository.ProductRepository$Subclass0.findAll(Unknown Source)
-	at com.wmsplatform.service.ProductServiceTest$getAllProducts returns all products$1.invoke(ProductServiceTest.kt:80)
-	at com.wmsplatform.service.ProductServiceTest$getAllProducts returns all products$1.invoke(ProductServiceTest.kt:80)
+	at com.wmsplatform.service.ProductServiceTest.getAllProducts_returns_all_products$lambda$7(ProductServiceTest.kt:80)
 	at io.mockk.impl.eval.RecordedBlockEvaluator$record$block$1.invoke(RecordedBlockEvaluator.kt:25)
 	at io.mockk.impl.eval.RecordedBlockEvaluator$enhanceWithRethrow$1.invoke(RecordedBlockEvaluator.kt:78)
 	at io.mockk.impl.recording.JvmAutoHinter.autoHint(JvmAutoHinter.kt:23)
@@ -478,11 +477,12 @@ java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current
 	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
 	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
 	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:107)
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:88)
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:54)
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:67)
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:52)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:147)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:127)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:90)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:55)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:102)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:54)
 	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:114)
 	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:86)
 	at org.junit.platform.launcher.core.DefaultLauncherSession$DelegatingLauncher.execute(DefaultLauncherSession.java:86)
@@ -506,13 +506,13 @@ java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current
 	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:71)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
-10:57:11.272 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/util/Collection
+11:20:26.600 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/util/Collection
 java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current version of Byte Buddy which officially supports Java 21 (65) - update Byte Buddy or set net.bytebuddy.experimental as a VM property
-	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:96)
+	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:100)
 	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default$ForInlining.create(TypeWriter.java:4011)
 	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default.make(TypeWriter.java:2224)
-	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase$UsingTypeWriter.make(DynamicType.java:4050)
-	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase.make(DynamicType.java:3734)
+	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase$UsingTypeWriter.make(DynamicType.java:4055)
+	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase.make(DynamicType.java:3739)
 	at io.mockk.proxy.jvm.transformation.InliningClassTransformer.transform(InliningClassTransformer.kt:81)
 	at java.instrument/java.lang.instrument.ClassFileTransformer.transform(ClassFileTransformer.java:242)
 	at java.instrument/sun.instrument.TransformerManager.transform(TransformerManager.java:188)
@@ -538,8 +538,7 @@ java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current
 	at io.mockk.proxy.jvm.advice.BaseAdvice.handle(BaseAdvice.kt:42)
 	at io.mockk.proxy.jvm.advice.jvm.JvmMockKProxyInterceptor.interceptNoSuper(JvmMockKProxyInterceptor.java:45)
 	at com.wmsplatform.domain.repository.ProductRepository$Subclass0.findAll(Unknown Source)
-	at com.wmsplatform.service.ProductServiceTest$getAllProducts returns all products$1.invoke(ProductServiceTest.kt:80)
-	at com.wmsplatform.service.ProductServiceTest$getAllProducts returns all products$1.invoke(ProductServiceTest.kt:80)
+	at com.wmsplatform.service.ProductServiceTest.getAllProducts_returns_all_products$lambda$7(ProductServiceTest.kt:80)
 	at io.mockk.impl.eval.RecordedBlockEvaluator$record$block$1.invoke(RecordedBlockEvaluator.kt:25)
 	at io.mockk.impl.eval.RecordedBlockEvaluator$enhanceWithRethrow$1.invoke(RecordedBlockEvaluator.kt:78)
 	at io.mockk.impl.recording.JvmAutoHinter.autoHint(JvmAutoHinter.kt:23)
@@ -600,11 +599,12 @@ java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current
 	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
 	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
 	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:107)
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:88)
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:54)
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:67)
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:52)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:147)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:127)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:90)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:55)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:102)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:54)
 	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:114)
 	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:86)
 	at org.junit.platform.launcher.core.DefaultLauncherSession$DelegatingLauncher.execute(DefaultLauncherSession.java:86)
@@ -628,13 +628,13 @@ java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current
 	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:71)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
-10:57:11.274 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/lang/Iterable
+11:20:26.605 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/lang/Iterable
 java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current version of Byte Buddy which officially supports Java 21 (65) - update Byte Buddy or set net.bytebuddy.experimental as a VM property
-	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:96)
+	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:100)
 	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default$ForInlining.create(TypeWriter.java:4011)
 	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default.make(TypeWriter.java:2224)
-	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase$UsingTypeWriter.make(DynamicType.java:4050)
-	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase.make(DynamicType.java:3734)
+	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase$UsingTypeWriter.make(DynamicType.java:4055)
+	at net.bytebuddy.dynamic.DynamicType$Builder$AbstractBase.make(DynamicType.java:3739)
 	at io.mockk.proxy.jvm.transformation.InliningClassTransformer.transform(InliningClassTransformer.kt:81)
 	at java.instrument/java.lang.instrument.ClassFileTransformer.transform(ClassFileTransformer.java:242)
 	at java.instrument/sun.instrument.TransformerManager.transform(TransformerManager.java:188)
@@ -660,8 +660,7 @@ java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current
 	at io.mockk.proxy.jvm.advice.BaseAdvice.handle(BaseAdvice.kt:42)
 	at io.mockk.proxy.jvm.advice.jvm.JvmMockKProxyInterceptor.interceptNoSuper(JvmMockKProxyInterceptor.java:45)
 	at com.wmsplatform.domain.repository.ProductRepository$Subclass0.findAll(Unknown Source)
-	at com.wmsplatform.service.ProductServiceTest$getAllProducts returns all products$1.invoke(ProductServiceTest.kt:80)
-	at com.wmsplatform.service.ProductServiceTest$getAllProducts returns all products$1.invoke(ProductServiceTest.kt:80)
+	at com.wmsplatform.service.ProductServiceTest.getAllProducts_returns_all_products$lambda$7(ProductServiceTest.kt:80)
 	at io.mockk.impl.eval.RecordedBlockEvaluator$record$block$1.invoke(RecordedBlockEvaluator.kt:25)
 	at io.mockk.impl.eval.RecordedBlockEvaluator$enhanceWithRethrow$1.invoke(RecordedBlockEvaluator.kt:78)
 	at io.mockk.impl.recording.JvmAutoHinter.autoHint(JvmAutoHinter.kt:23)
@@ -722,11 +721,12 @@ java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current
 	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
 	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
 	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:107)
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:88)
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:54)
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:67)
-	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:52)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:147)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:127)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:90)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:55)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:102)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:54)
 	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:114)
 	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:86)
 	at org.junit.platform.launcher.core.DefaultLauncherSession$DelegatingLauncher.execute(DefaultLauncherSession.java:86)
@@ -751,7 +751,7 @@ java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
 ]]></system-out>
-  <system-err><![CDATA[WARNING: A Java agent has been loaded dynamically (/Users/killian/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy-agent/1.14.4/3bf5ac1104554908cc623e40e58a00be37c35f36/byte-buddy-agent-1.14.4.jar)
+  <system-err><![CDATA[WARNING: A Java agent has been loaded dynamically (/Users/killian/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy-agent/1.14.8/ae6ebe485f3bcd0a1e20241488a32e6400a501ef/byte-buddy-agent-1.14.8.jar)
 WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
 WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
 WARNING: Dynamic loading of agents will be disallowed by default in a future release

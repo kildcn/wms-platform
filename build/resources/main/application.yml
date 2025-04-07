@@ -15,6 +15,20 @@ spring:
     console:
       enabled: true
       path: /h2-console
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      retries: 0
+      acks: 1
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      # Add error handling properties
+      properties:
+        spring.kafka.producer.properties.request.timeout.ms: 1000
+        spring.kafka.producer.properties.max.block.ms: 1000
+    # Add a listener config with error handling
+    listener:
+      missing-topics-fatal: false
 
 server:
   port: 8080
@@ -24,3 +38,4 @@ logging:
     root: INFO
     com.wmsplatform: DEBUG
     org.hibernate.SQL: DEBUG
+    org.springframework.kafka: WARN

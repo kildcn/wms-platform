@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">1.046s</div>
+<div class="counter">0.984s</div>
 <p>duration</p>
 </div>
 </td>
@@ -82,17 +82,17 @@
 </thead>
 <tr>
 <td class="success">createProduct saves product when SKU is unique()</td>
-<td class="success">0.123s</td>
+<td class="success">0.116s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">createProduct throws exception when SKU already exists()</td>
-<td class="success">0.003s</td>
+<td class="success">0.002s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">deleteProduct deletes existing product()</td>
-<td class="success">0.828s</td>
+<td class="success">0.794s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -102,32 +102,32 @@
 </tr>
 <tr>
 <td class="success">getAllProducts returns all products()</td>
-<td class="success">0.073s</td>
+<td class="success">0.060s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">getProductById returns product when found()</td>
-<td class="success">0.002s</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">getProductById throws exception when product not found()</td>
-<td class="success">0.004s</td>
+<td class="success">0.003s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">getProductBySku returns product when found()</td>
-<td class="success">0.002s</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">updateProduct updates existing product()</td>
-<td class="success">0.004s</td>
+<td class="success">0.002s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">updateStock updates stock quantity for existing product()</td>
-<td class="success">0.005s</td>
+<td class="success">0.003s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -135,7 +135,7 @@
 <div class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>11:20:26.422 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/lang/Object
+<pre>17:09:10.119 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/lang/Object
 java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current version of Byte Buddy which officially supports Java 21 (65) - update Byte Buddy or set net.bytebuddy.experimental as a VM property
 	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:100)
 	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default$ForInlining.create(TypeWriter.java:4011)
@@ -261,7 +261,7 @@ java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current
 	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:71)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
-11:20:26.518 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/util/Optional
+17:09:10.209 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/util/Optional
 java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current version of Byte Buddy which officially supports Java 21 (65) - update Byte Buddy or set net.bytebuddy.experimental as a VM property
 	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:100)
 	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default$ForInlining.create(TypeWriter.java:4011)
@@ -386,7 +386,7 @@ java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current
 	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:71)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
-11:20:26.590 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/util/List
+17:09:10.276 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/util/List
 java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current version of Byte Buddy which officially supports Java 21 (65) - update Byte Buddy or set net.bytebuddy.experimental as a VM property
 	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:100)
 	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default$ForInlining.create(TypeWriter.java:4011)
@@ -508,7 +508,7 @@ java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current
 	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:71)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
-11:20:26.595 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/util/SequencedCollection
+17:09:10.280 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/util/SequencedCollection
 java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current version of Byte Buddy which officially supports Java 21 (65) - update Byte Buddy or set net.bytebuddy.experimental as a VM property
 	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:100)
 	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default$ForInlining.create(TypeWriter.java:4011)
@@ -630,7 +630,7 @@ java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current
 	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:71)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
-11:20:26.600 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/util/Collection
+17:09:10.285 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/util/Collection
 java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current version of Byte Buddy which officially supports Java 21 (65) - update Byte Buddy or set net.bytebuddy.experimental as a VM property
 	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:100)
 	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default$ForInlining.create(TypeWriter.java:4011)
@@ -752,7 +752,7 @@ java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current
 	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:71)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
-11:20:26.605 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/lang/Iterable
+17:09:10.288 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/lang/Iterable
 java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current version of Byte Buddy which officially supports Java 21 (65) - update Byte Buddy or set net.bytebuddy.experimental as a VM property
 	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:100)
 	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default$ForInlining.create(TypeWriter.java:4011)
@@ -895,7 +895,7 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="https://www.gradle.org">Gradle 8.13</a> at Apr 7, 2025, 11:20:26 AM</p>
+<a href="https://www.gradle.org">Gradle 8.13</a> at Apr 7, 2025, 5:09:10 PM</p>
 </div>
 </div>
 </body>

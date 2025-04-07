@@ -77,6 +77,7 @@ class OrderStatusEventListener(
     private fun safelySendKafkaMessage(topic: String, key: String, value: String) {
         try {
             kafkaTemplate.send(topic, key, value)
+            logger.debug("Sent message to Kafka topic $topic: [$key] $value")
         } catch (e: Exception) {
             // Log but don't fail the status update operation
             logger.error("Failed to send Kafka message to topic $topic", e)

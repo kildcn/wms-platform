@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.wmsplatform.service.ProductServiceTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2025-04-07T09:20:25.619Z" hostname="Killians-MacBook-Air.local" time="1.053">
+<testsuite name="com.wmsplatform.service.ProductServiceTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2025-04-07T15:09:09.347Z" hostname="Killians-MacBook-Air.local" time="0.992">
   <properties/>
-  <testcase name="deleteProduct deletes existing product()" classname="com.wmsplatform.service.ProductServiceTest" time="0.828"/>
-  <testcase name="createProduct saves product when SKU is unique()" classname="com.wmsplatform.service.ProductServiceTest" time="0.123"/>
-  <testcase name="getProductBySku returns product when found()" classname="com.wmsplatform.service.ProductServiceTest" time="0.002"/>
-  <testcase name="getProductById throws exception when product not found()" classname="com.wmsplatform.service.ProductServiceTest" time="0.004"/>
-  <testcase name="getAllProducts returns all products()" classname="com.wmsplatform.service.ProductServiceTest" time="0.073"/>
-  <testcase name="getProductById returns product when found()" classname="com.wmsplatform.service.ProductServiceTest" time="0.002"/>
+  <testcase name="deleteProduct deletes existing product()" classname="com.wmsplatform.service.ProductServiceTest" time="0.794"/>
+  <testcase name="createProduct saves product when SKU is unique()" classname="com.wmsplatform.service.ProductServiceTest" time="0.116"/>
+  <testcase name="getProductBySku returns product when found()" classname="com.wmsplatform.service.ProductServiceTest" time="0.001"/>
+  <testcase name="getProductById throws exception when product not found()" classname="com.wmsplatform.service.ProductServiceTest" time="0.003"/>
+  <testcase name="getAllProducts returns all products()" classname="com.wmsplatform.service.ProductServiceTest" time="0.06"/>
+  <testcase name="getProductById returns product when found()" classname="com.wmsplatform.service.ProductServiceTest" time="0.001"/>
   <testcase name="deleteProduct throws exception when product not found()" classname="com.wmsplatform.service.ProductServiceTest" time="0.002"/>
-  <testcase name="updateProduct updates existing product()" classname="com.wmsplatform.service.ProductServiceTest" time="0.004"/>
-  <testcase name="updateStock updates stock quantity for existing product()" classname="com.wmsplatform.service.ProductServiceTest" time="0.005"/>
-  <testcase name="createProduct throws exception when SKU already exists()" classname="com.wmsplatform.service.ProductServiceTest" time="0.003"/>
-  <system-out><![CDATA[11:20:26.422 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/lang/Object
+  <testcase name="updateProduct updates existing product()" classname="com.wmsplatform.service.ProductServiceTest" time="0.002"/>
+  <testcase name="updateStock updates stock quantity for existing product()" classname="com.wmsplatform.service.ProductServiceTest" time="0.003"/>
+  <testcase name="createProduct throws exception when SKU already exists()" classname="com.wmsplatform.service.ProductServiceTest" time="0.002"/>
+  <system-out><![CDATA[17:09:10.119 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/lang/Object
 java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current version of Byte Buddy which officially supports Java 21 (65) - update Byte Buddy or set net.bytebuddy.experimental as a VM property
 	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:100)
 	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default$ForInlining.create(TypeWriter.java:4011)
@@ -137,7 +137,7 @@ java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current
 	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:71)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
-11:20:26.518 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/util/Optional
+17:09:10.209 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/util/Optional
 java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current version of Byte Buddy which officially supports Java 21 (65) - update Byte Buddy or set net.bytebuddy.experimental as a VM property
 	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:100)
 	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default$ForInlining.create(TypeWriter.java:4011)
@@ -262,7 +262,7 @@ java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current
 	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:71)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
-11:20:26.590 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/util/List
+17:09:10.276 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/util/List
 java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current version of Byte Buddy which officially supports Java 21 (65) - update Byte Buddy or set net.bytebuddy.experimental as a VM property
 	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:100)
 	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default$ForInlining.create(TypeWriter.java:4011)
@@ -384,7 +384,7 @@ java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current
 	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:71)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
-11:20:26.595 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/util/SequencedCollection
+17:09:10.280 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/util/SequencedCollection
 java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current version of Byte Buddy which officially supports Java 21 (65) - update Byte Buddy or set net.bytebuddy.experimental as a VM property
 	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:100)
 	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default$ForInlining.create(TypeWriter.java:4011)
@@ -506,7 +506,7 @@ java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current
 	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:71)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
-11:20:26.600 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/util/Collection
+17:09:10.285 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/util/Collection
 java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current version of Byte Buddy which officially supports Java 21 (65) - update Byte Buddy or set net.bytebuddy.experimental as a VM property
 	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:100)
 	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default$ForInlining.create(TypeWriter.java:4011)
@@ -628,7 +628,7 @@ java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current
 	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:71)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
-11:20:26.605 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/lang/Iterable
+17:09:10.288 [Test worker] WARN io.mockk.proxy.jvm.transformation.InliningClassTransformer -- Failed to transform class java/lang/Iterable
 java.lang.IllegalArgumentException: Java 23 (67) is not supported by the current version of Byte Buddy which officially supports Java 21 (65) - update Byte Buddy or set net.bytebuddy.experimental as a VM property
 	at net.bytebuddy.utility.OpenedClassReader.of(OpenedClassReader.java:100)
 	at net.bytebuddy.dynamic.scaffold.TypeWriter$Default$ForInlining.create(TypeWriter.java:4011)

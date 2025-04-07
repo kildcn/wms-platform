@@ -5,9 +5,10 @@ import OrderForm from './OrderForm';
 import { AddInventoryForm, MoveInventoryForm, InventoryDetail, InventoryHistory } from './InventoryComponents';
 
 // Import services
-import { getAllProducts, getProductById, createProduct, updateProduct, deleteProduct, getLowStockProducts } from '../services/productService';
-import { getAllOrders, getOrdersByStatus, getOrderById, createOrder, updateOrderStatus, cancelOrder, getHighPriorityOrders } from '../services/orderService';
-import { getInventoryItemById, getInventoryByProduct, getInventoryByLocation, addInventory, moveInventory, removeInventory } from '../services/inventoryService';
+import * as productService from '../services/productService';
+import * as orderService from '../services/orderService';
+import * as inventoryService from '../services/inventoryService';
+import * as locationService from '../services/locationService';
 
 // Main application component that integrates all others
 const WMSApplication = () => {
@@ -39,23 +40,38 @@ const WMSApplication = () => {
       try {
         setLoading(true);
 
-        // Replace this mock data section:
-        // setTimeout(() => { setProducts([...]) }, 1000);
+        // Use the actual API calls
+        const fetchProducts = productService.getAllProducts();
+        const fetchOrders = orderService.getAllOrders();
+        const fetchLocations = locationService.getLocations();
 
-        // With actual API calls:
-        const productsData = await productService.getAllProducts();
-        const ordersData = await orderService.getAllOrders();
-        const inventoryData = await inventoryService.getInventoryByProduct(/* pass suitable param */);
-        // You might need to add additional service methods to fetch locations
+        // Wait for all API calls to complete
+        const [productsData, ordersData, locationsData] = await Promise.all([
+          fetchProducts,
+          fetchOrders,
+          fetchLocations
+        ]);
+
+        // Once we have products, fetch inventory for the first product if any exist
+        let inventoryData = [];
+        if (productsData.length > 0) {
+          try {
+            inventoryData = await inventoryService.getInventoryByProduct(productsData[0].id);
+          } catch (err) {
+            console.error("Failed to load inventory data:", err);
+            // Don't fail the whole app if just inventory fails
+          }
+        }
 
         setProducts(productsData);
         setOrders(ordersData);
         setInventory(inventoryData);
-        // You'll need to fetch locations too
+        setLocations(locationsData);
 
         setLoading(false);
       } catch (err) {
-        setError(err.message);
+        console.error("Error fetching data:", err);
+        setError(err.message || "Failed to load application data");
         setLoading(false);
       }
     };
@@ -79,23 +95,21 @@ const WMSApplication = () => {
   const handleSaveProduct = async (productData) => {
     try {
       if (editingProduct) {
-        // In a real app: await productService.updateProduct(editingProduct.id, productData);
+        // Update existing product via API
+        const updatedProduct = await productService.updateProduct(editingProduct.id, productData);
 
-        // Update existing product
+        // Update local state
         setProducts(prevProducts =>
           prevProducts.map(p =>
-            p.id === editingProduct.id ? { ...p, ...productData } : p
+            p.id === editingProduct.id ? updatedProduct : p
           )
         );
       } else {
-        // In a real app: const newProduct = await productService.createProduct(productData);
+        // Create new product via API
+        const newProduct = await productService.createProduct(productData);
 
-        // Create new product with generated ID
-        const newId = Math.max(0, ...products.map(p => p.id)) + 1;
-        setProducts(prevProducts => [
-          ...prevProducts,
-          { id: newId, ...productData }
-        ]);
+        // Add to local state
+        setProducts(prevProducts => [...prevProducts, newProduct]);
       }
       setShowProductForm(false);
       setEditingProduct(null);
@@ -108,7 +122,10 @@ const WMSApplication = () => {
   const handleDeleteProduct = async (productId) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
-        // In a real app: await productService.deleteProduct(productId);
+        // Delete via API
+        await productService.deleteProduct(productId);
+
+        // Update local state
         setProducts(prevProducts => prevProducts.filter(p => p.id !== productId));
       } catch (err) {
         console.error("Error deleting product:", err);
@@ -128,30 +145,36 @@ const WMSApplication = () => {
     setShowOrderForm(true);
   };
 
-  const handleViewOrder = (order) => {
-    // In a real app, fetch complete order details
-    setEditingOrder(order);
-    setShowOrderForm(true);
+  const handleViewOrder = async (order) => {
+    try {
+      // Get complete order details from API
+      const orderDetails = await orderService.getOrderById(order.id);
+      setEditingOrder(orderDetails);
+      setShowOrderForm(true);
+    } catch (err) {
+      console.error("Error fetching order details:", err);
+      alert(`Error: ${err.message}`);
+    }
   };
 
   const handleSaveOrder = async (orderData) => {
     try {
       if (editingOrder) {
-        // In a real app, call API to update
+        // For now, we'll just update the status since our API doesn't support full order updates
+        const updatedOrder = await orderService.updateOrderStatus(editingOrder.id, orderData.status);
+
+        // Update local state
         setOrders(prevOrders =>
           prevOrders.map(o =>
-            o.id === editingOrder.id ? { ...o, ...orderData } : o
+            o.id === editingOrder.id ? { ...o, ...updatedOrder } : o
           )
         );
       } else {
-        // In a real app: const newOrder = await orderService.createOrder(orderData);
+        // Create new order via API
+        const newOrder = await orderService.createOrder(orderData);
 
-        // Create new order with generated ID
-        const newId = Math.max(0, ...orders.map(o => o.id)) + 1;
-        setOrders(prevOrders => [
-          ...prevOrders,
-          { id: newId, ...orderData }
-        ]);
+        // Add to local state
+        setOrders(prevOrders => [...prevOrders, newOrder]);
       }
       setShowOrderForm(false);
       setEditingOrder(null);
@@ -163,12 +186,13 @@ const WMSApplication = () => {
 
   const handleUpdateOrderStatus = async (orderId, newStatus) => {
     try {
-      // In a real app: await orderService.updateOrderStatus(orderId, newStatus);
+      // Update status via API
+      const updatedOrder = await orderService.updateOrderStatus(orderId, newStatus);
+
+      // Update local state
       setOrders(prevOrders =>
         prevOrders.map(order =>
-          order.id === orderId
-            ? { ...order, status: newStatus, updatedAt: new Date().toISOString() }
-            : order
+          order.id === orderId ? updatedOrder : order
         )
       );
     } catch (err) {
@@ -188,43 +212,17 @@ const WMSApplication = () => {
 
   const handleSaveNewInventory = async (inventoryData) => {
     try {
-      // In a real app: const newItem = await inventoryService.addInventory(inventoryData);
+      // Add inventory via API
+      const newItem = await inventoryService.addInventory(inventoryData);
 
-      // Add new inventory item with generated ID
-      const newId = Math.max(0, ...inventory.map(i => i.id)) + 1;
-
-      // Get product and location details
-      const product = products.find(p => p.id === inventoryData.productId);
-      const location = locations.find(l => l.id === inventoryData.locationId);
-
-      if (!product || !location) {
-        alert('Invalid product or location');
-        return;
-      }
-
-      const newItem = {
-        id: newId,
-        productId: inventoryData.productId,
-        productName: product.name,
-        productSku: product.sku,
-        quantity: inventoryData.quantity,
-        locationId: inventoryData.locationId,
-        locationName: `${location.aisle}-${location.rack}-${location.shelf}-${location.bin}`,
-        batchNumber: inventoryData.batchNumber || null,
-        expiryDate: inventoryData.expiryDate || null,
-        lastCountedAt: new Date().toISOString(),
-        isQuarantined: false,
-        createdAt: new Date().toISOString()
-      };
-
+      // Update local state
       setInventory(prevInventory => [...prevInventory, newItem]);
 
-      // Update product stock
+      // Refresh the product to update its stock quantity
+      const updatedProduct = await productService.getProductById(inventoryData.productId);
       setProducts(prevProducts =>
         prevProducts.map(p =>
-          p.id === inventoryData.productId
-            ? { ...p, stockQuantity: p.stockQuantity + inventoryData.quantity }
-            : p
+          p.id === inventoryData.productId ? updatedProduct : p
         )
       );
 
@@ -237,66 +235,19 @@ const WMSApplication = () => {
 
   const handleSaveMoveInventory = async (moveData) => {
     try {
-      // In a real app: await inventoryService.moveInventory(moveData.inventoryItemId, moveData.newLocationId, moveData.quantity);
+      // Move inventory via API
+      const updatedItem = await inventoryService.moveInventory(
+        moveData.inventoryItemId,
+        moveData.newLocationId,
+        moveData.quantity
+      );
 
-      const sourceItem = inventory.find(i => i.id === parseInt(moveData.inventoryItemId));
-      if (!sourceItem) {
-        alert('Invalid inventory item');
-        return;
-      }
-
-      const targetLocation = locations.find(l => l.id === parseInt(moveData.newLocationId));
-      if (!targetLocation) {
-        alert('Invalid target location');
-        return;
-      }
-
-      if (moveData.quantity > sourceItem.quantity) {
-        alert('Cannot move more than available quantity');
-        return;
-      }
-
-      if (parseInt(moveData.quantity) === sourceItem.quantity) {
-        // Move entire inventory item
-        setInventory(prevInventory =>
-          prevInventory.map(item =>
-            item.id === parseInt(moveData.inventoryItemId)
-              ? {
-                  ...item,
-                  locationId: parseInt(moveData.newLocationId),
-                  locationName: `${targetLocation.aisle}-${targetLocation.rack}-${targetLocation.shelf}-${targetLocation.bin}`,
-                  lastCountedAt: new Date().toISOString()
-                }
-              : item
-          )
+      // Update local state - this is simplified and would need to handle split cases in real app
+      setInventory(prevInventory => {
+        return prevInventory.map(item =>
+          item.id === parseInt(moveData.inventoryItemId) ? updatedItem : item
         );
-      } else {
-        // Split inventory - reduce source and create new destination
-        setInventory(prevInventory => {
-          const updatedSource = {
-            ...sourceItem,
-            quantity: sourceItem.quantity - parseInt(moveData.quantity),
-            lastCountedAt: new Date().toISOString()
-          };
-
-          const newId = Math.max(0, ...prevInventory.map(i => i.id)) + 1;
-          const newDestination = {
-            ...sourceItem,
-            id: newId,
-            quantity: parseInt(moveData.quantity),
-            locationId: parseInt(moveData.newLocationId),
-            locationName: `${targetLocation.aisle}-${targetLocation.rack}-${targetLocation.shelf}-${targetLocation.bin}`,
-            lastCountedAt: new Date().toISOString(),
-            createdAt: new Date().toISOString()
-          };
-
-          return [
-            ...prevInventory.filter(i => i.id !== sourceItem.id),
-            updatedSource,
-            newDestination
-          ];
-        });
-      }
+      });
 
       setShowMoveInventoryForm(false);
     } catch (err) {
@@ -313,11 +264,19 @@ const WMSApplication = () => {
     setSelectedInventoryItem(null);
   };
 
-  const handleViewInventoryHistory = (productId) => {
-    const product = products.find(p => p.id === productId);
-    if (product) {
+  const handleViewInventoryHistory = async (productId) => {
+    try {
+      // Get product details
+      const product = await productService.getProductById(productId);
+
+      // Here you would typically fetch inventory history as well
+      // const inventoryHistory = await inventoryService.getProductInventoryHistory(productId);
+
       setSelectedProductForHistory(product);
       setShowInventoryHistory(true);
+    } catch (err) {
+      console.error("Error fetching inventory history:", err);
+      alert(`Error: ${err.message}`);
     }
   };
 

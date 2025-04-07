@@ -57,3 +57,15 @@ application-*.properties
 # Logs
 logs/
 *.log
+.gradle/8.13/checksums/checksums.lock
+.gradle/8.13/checksums/checksums.lock
+.gradle/8.13/executionHistory/executionHistory.lock
+.gradle/8.13/fileHashes/fileHashes.lock
+.gradle/buildOutputCleanup/buildOutputCleanup.lock
+.gradle/8.13/checksums/checksums.lock
+.gradle/8.13/executionHistory/executionHistory.lock
+.gradle/8.13/fileHashes/fileHashes.lock
+.gradle/buildOutputCleanup/buildOutputCleanup.lock
+build/reports/problems/problems-report.html
+.gradle/8.13/checksums/checksums.lock
+.gradle/8.13/checksums/checksums.lock

@@ -2,6 +2,7 @@ package com.wmsplatform.domain.model
 
 import jakarta.persistence.*
 import java.time.LocalDateTime
+import com.fasterxml.jackson.annotation.JsonIgnore
 
 @Entity
 @Table(name = "inventory_items")
@@ -15,6 +16,8 @@ data class InventoryItem(
 
     @Column(nullable = false)
     val quantity: Int,
+
+    @JsonIgnore
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_id")

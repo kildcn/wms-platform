@@ -1,6 +1,7 @@
 package com.wmsplatform.domain.model
 
 import jakarta.persistence.*
+import com.fasterxml.jackson.annotation.JsonIgnore
 
 @Entity
 @Table(name = "warehouse_locations")
@@ -33,6 +34,8 @@ data class WarehouseLocation(
 
     @Column(nullable = false)
     val currentWeight: Double = 0.0,
+
+    @JsonIgnore
 
     @OneToMany(mappedBy = "location", cascade = [CascadeType.ALL], orphanRemoval = true)
     val inventory: MutableList<InventoryItem> = mutableListOf()

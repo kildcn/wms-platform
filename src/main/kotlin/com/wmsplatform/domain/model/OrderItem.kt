@@ -2,6 +2,8 @@ package com.wmsplatform.domain.model
 
 import jakarta.persistence.*
 import java.math.BigDecimal
+import com.fasterxml.jackson.annotation.JsonBackReference
+import com.fasterxml.jackson.annotation.JsonIgnore // Add this import
 
 @Entity
 @Table(name = "order_items")
@@ -12,6 +14,7 @@ data class OrderItem(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
+    @JsonBackReference // Prevent circular reference
     val order: Order,
 
     @Column(name = "product_id", nullable = false)
@@ -32,6 +35,7 @@ data class OrderItem(
     @Column(name = "is_picked", nullable = false)
     var isPicked: Boolean = false,
 
+    @JsonIgnore // Prevent serialization of this field
     @Column(name = "is_packed", nullable = false)
     var isPacked: Boolean = false
 )

@@ -1,16 +1,13 @@
 package com.wmsplatform.config
 
 import com.wmsplatform.domain.model.*
-import com.wmsplatform.domain.repository.InventoryItemRepository
-import com.wmsplatform.domain.repository.OrderRepository
-import com.wmsplatform.domain.repository.ProductRepository
-import com.wmsplatform.domain.repository.WarehouseLocationRepository
+import com.wmsplatform.domain.repository.*
 import org.slf4j.LoggerFactory
 import org.springframework.boot.CommandLineRunner
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
-import java.math.BigDecimal
+import java.math.BigDecimal // Add this import
 import java.time.LocalDateTime
 
 @Configuration
@@ -23,7 +20,8 @@ class DataInitializer {
         productRepository: ProductRepository,
         locationRepository: WarehouseLocationRepository,
         inventoryRepository: InventoryItemRepository,
-        orderRepository: OrderRepository
+        orderRepository: OrderRepository,
+        inventoryHistoryRepository: InventoryHistoryRepository
     ): CommandLineRunner {
         return CommandLineRunner {
             logger.info("Starting database initialization...")
@@ -48,6 +46,9 @@ class DataInitializer {
             logger.info("Saving ${inventoryItems.size} inventory items")
             inventoryRepository.saveAll(inventoryItems)
 
+            // Create initial inventory history
+            createInitialInventoryHistory(inventoryHistoryRepository, inventoryItems)
+
             // Create some sample orders
             val orders = createOrders(savedProducts)
             logger.info("Saving ${orders.size} orders")
@@ -58,68 +59,33 @@ class DataInitializer {
     }
 
     private fun createInitialInventoryHistory(
-    inventoryHistoryRepository: InventoryHistoryRepository,
-    inventoryItems: List<InventoryItem>
-) {
-    val random = java.util.Random()
-    val historyRecords = mutableListOf<InventoryHistory>()
+        inventoryHistoryRepository: InventoryHistoryRepository,
+        inventoryItems: List<InventoryItem>
+    ) {
+        val random = java.util.Random()
+        val historyRecords = mutableListOf<InventoryHistory>()
 
-    // For each inventory item, create history records
-    inventoryItems.forEach { item ->
-        // Initial creation record
-        historyRecords.add(
-            InventoryHistory(
-                productId = item.productId,
-                inventoryItemId = item.id,
-                actionType = InventoryActionType.ADDED,
-                quantity = item.quantity,
-                destinationLocationId = item.location.id,
-                batchNumber = item.batchNumber,
-                username = "System",
-                notes = "Initial inventory creation",
-                timestamp = item.createdAt.minusDays(random.nextInt(30).toLong())
-            )
-        )
-
-        // For some items, add additional history
-        if (random.nextBoolean()) {
-            // Record a move action
+        inventoryItems.forEach { item ->
             historyRecords.add(
                 InventoryHistory(
                     productId = item.productId,
                     inventoryItemId = item.id,
-                    actionType = InventoryActionType.MOVED,
+                    actionType = InventoryActionType.ADDED,
                     quantity = item.quantity,
-                    sourceLocationId = item.location.id,
+                    sourceLocationId = null, // Provide a default value if not applicable
                     destinationLocationId = item.location.id,
-                    username = "Warehouse Staff",
-                    notes = "Inventory relocation",
-                    timestamp = item.createdAt.minusDays(random.nextInt(20).toLong())
+                    userId = null, // Provide a default value if not applicable
+                    batchNumber = item.batchNumber ?: "N/A",
+                    username = "System",
+                    notes = "Initial inventory creation",
+                    timestamp = item.createdAt.minusDays(random.nextInt(30).toLong())
                 )
             )
         }
 
-        // Add a count record for some items
-        if (random.nextBoolean()) {
-            historyRecords.add(
-                InventoryHistory(
-                    productId = item.productId,
-                    inventoryItemId = item.id,
-                    actionType = InventoryActionType.COUNTED,
-                    quantity = item.quantity,
-                    sourceLocationId = item.location.id,
-                    username = "Inventory Manager",
-                    notes = "Cycle count verification",
-                    timestamp = item.createdAt.minusDays(random.nextInt(10).toLong())
-                )
-            )
-        }
+        inventoryHistoryRepository.saveAll(historyRecords)
+        logger.info("Created ${historyRecords.size} inventory history records")
     }
-
-    // Save all history records
-    inventoryHistoryRepository.saveAll(historyRecords)
-    logger.info("Created ${historyRecords.size} inventory history records")
-}
 
     private fun createWarehouseLocations(): List<WarehouseLocation> {
         val locations = mutableListOf<WarehouseLocation>()

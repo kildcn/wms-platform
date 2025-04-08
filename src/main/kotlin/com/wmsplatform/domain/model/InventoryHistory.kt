@@ -2,6 +2,7 @@ package com.wmsplatform.domain.model
 
 import jakarta.persistence.*
 import java.time.LocalDateTime
+import com.fasterxml.jackson.annotation.JsonIgnore
 
 enum class InventoryActionType {
     ADDED,
@@ -48,6 +49,8 @@ data class InventoryHistory(
 
     @Column(name = "timestamp", nullable = false)
     val timestamp: LocalDateTime = LocalDateTime.now(),
+
+    @JsonIgnore
 
     @Column(length = 500)
     val notes: String? = null

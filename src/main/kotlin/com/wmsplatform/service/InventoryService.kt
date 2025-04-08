@@ -1,9 +1,6 @@
 package com.wmsplatform.service
 
-import com.wmsplatform.domain.model.InventoryItem
-import com.wmsplatform.domain.model.LocationType
-import com.wmsplatform.domain.model.Product
-import com.wmsplatform.domain.model.WarehouseLocation
+import com.wmsplatform.domain.model.*
 import com.wmsplatform.domain.repository.InventoryItemRepository
 import com.wmsplatform.domain.repository.ProductRepository
 import com.wmsplatform.domain.repository.WarehouseLocationRepository
@@ -16,7 +13,8 @@ import java.time.LocalDateTime
 class InventoryService(
     private val inventoryItemRepository: InventoryItemRepository,
     private val productRepository: ProductRepository,
-    private val locationRepository: WarehouseLocationRepository
+    private val locationRepository: WarehouseLocationRepository,
+    private val inventoryHistoryService: InventoryHistoryService
 ) {
     private val logger = LoggerFactory.getLogger(InventoryService::class.java)
 
@@ -73,6 +71,17 @@ class InventoryService(
 
         val savedItem = inventoryItemRepository.save(inventoryItem)
 
+        // Record history
+        inventoryHistoryService.createHistoryEntry(
+            productId = productId,
+            inventoryItemId = savedItem.id,
+            actionType = InventoryActionType.ADDED,
+            quantity = quantity,
+            destinationLocationId = location.id,
+            batchNumber = batchNumber,
+            notes = "Initial inventory addition"
+        )
+
         // Update product stock count
         updateProductStockCount(product)
 
@@ -93,16 +102,28 @@ class InventoryService(
         val newLocation = locationRepository.findById(newLocationId)
             .orElseThrow { NoSuchElementException("Location not found with id: $newLocationId") }
 
+        val oldLocation = inventoryItem.location
+
         // If moving all quantity, just update the location
         if (quantity == inventoryItem.quantity) {
-            val oldLocation = inventoryItem.location
-
             val updatedItem = inventoryItem.copy(
                 location = newLocation,
                 lastCountedAt = LocalDateTime.now()
             )
 
             val savedItem = inventoryItemRepository.save(updatedItem)
+
+            // Record history
+            inventoryHistoryService.createHistoryEntry(
+                productId = inventoryItem.productId,
+                inventoryItemId = savedItem.id,
+                actionType = InventoryActionType.MOVED,
+                quantity = quantity,
+                sourceLocationId = oldLocation.id,
+                destinationLocationId = newLocation.id,
+                batchNumber = inventoryItem.batchNumber,
+                notes = "Moved entire inventory item"
+            )
 
             // Update location statuses
             updateLocationStatus(oldLocation)
@@ -125,12 +146,26 @@ class InventoryService(
                 quantity = inventoryItem.quantity - quantity
             )
 
-            inventoryItemRepository.save(updatedOriginalItem)
+            val savedOriginalItem = inventoryItemRepository.save(updatedOriginalItem)
+            val savedNewItem = inventoryItemRepository.save(newItem)
+
+            // Record history
+            inventoryHistoryService.createHistoryEntry(
+                productId = inventoryItem.productId,
+                inventoryItemId = savedNewItem.id,
+                actionType = InventoryActionType.MOVED,
+                quantity = quantity,
+                sourceLocationId = oldLocation.id,
+                destinationLocationId = newLocation.id,
+                batchNumber = inventoryItem.batchNumber,
+                notes = "Split from inventory item #${savedOriginalItem.id}"
+            )
 
             // Update location status
+            updateLocationStatus(oldLocation)
             updateLocationStatus(newLocation)
 
-            return inventoryItemRepository.save(newItem)
+            return savedNewItem
         }
     }
 
@@ -151,17 +186,42 @@ class InventoryService(
 
             if (item.quantity <= remainingToRemove) {
                 // Remove entire item
+                val removedQuantity = item.quantity
                 inventoryItemRepository.delete(item)
-                remainingToRemove -= item.quantity
+                remainingToRemove -= removedQuantity
+
+                // Record history
+                inventoryHistoryService.createHistoryEntry(
+                    productId = productId,
+                    inventoryItemId = item.id,
+                    actionType = InventoryActionType.REMOVED,
+                    quantity = removedQuantity,
+                    sourceLocationId = location.id,
+                    batchNumber = item.batchNumber,
+                    notes = "Completely removed inventory item"
+                )
 
                 // Update location status
                 updateLocationStatus(location)
             } else {
                 // Remove partial quantity
+                val removedQuantity = remainingToRemove
                 val updatedItem = item.copy(
-                    quantity = item.quantity - remainingToRemove
+                    quantity = item.quantity - removedQuantity
                 )
                 inventoryItemRepository.save(updatedItem)
+
+                // Record history
+                inventoryHistoryService.createHistoryEntry(
+                    productId = productId,
+                    inventoryItemId = item.id,
+                    actionType = InventoryActionType.REMOVED,
+                    quantity = removedQuantity,
+                    sourceLocationId = location.id,
+                    batchNumber = item.batchNumber,
+                    notes = "Partially removed from inventory item"
+                )
+
                 remainingToRemove = 0
             }
 
@@ -188,6 +248,17 @@ class InventoryService(
 
         val savedItem = inventoryItemRepository.save(updatedItem)
 
+        // Record history
+        inventoryHistoryService.createHistoryEntry(
+            productId = inventoryItem.productId,
+            inventoryItemId = savedItem.id,
+            actionType = InventoryActionType.QUARANTINED,
+            quantity = inventoryItem.quantity,
+            sourceLocationId = inventoryItem.location.id,
+            batchNumber = inventoryItem.batchNumber,
+            notes = "Inventory quarantined"
+        )
+
         // Update product stock count since quarantined items aren't available
         val product = productRepository.findById(inventoryItem.productId)
             .orElseThrow { NoSuchElementException("Product not found with id: ${inventoryItem.productId}") }
@@ -201,7 +272,20 @@ class InventoryService(
         val inventoryItems = inventoryItemRepository.findByLocationId(locationId)
 
         val updatedItems = inventoryItems.map { item ->
-            item.copy(lastCountedAt = LocalDateTime.now())
+            val updatedItem = item.copy(lastCountedAt = LocalDateTime.now())
+
+            // Record history for each item
+            inventoryHistoryService.createHistoryEntry(
+                productId = item.productId,
+                inventoryItemId = item.id,
+                actionType = InventoryActionType.COUNTED,
+                quantity = item.quantity,
+                sourceLocationId = locationId,
+                batchNumber = item.batchNumber,
+                notes = "Cycle count performed"
+            )
+
+            updatedItem
         }
 
         return inventoryItemRepository.saveAll(updatedItems)

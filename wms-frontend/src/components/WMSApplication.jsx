@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import EnhancedWMSDashboard from './EnhancedWMSDashboard';
 import ProductForm from './ProductForm';
 import OrderForm from './OrderForm';
-import { AddInventoryForm, MoveInventoryForm, InventoryDetail, InventoryHistory } from './InventoryComponents';
+import { AddInventoryForm, MoveInventoryForm, InventoryDetail } from './InventoryComponents';
+import InventoryHistory from './InventoryHistory';
 
 // Import services
 import * as productService from '../services/productService';

@@ -724,7 +724,7 @@ const EnhancedWMSDashboard = ({
       {/* Footer */}
       <footer className="bg-gray-800 text-white p-4">
         <div className="container mx-auto text-center">
-          <p>WMS Platform &copy; 2025 | <a href="https://github.com/yourusername/wms-platform" className="underline hover:text-blue-300">GitHub</a></p>
+          <p>WMS Platform &copy; 2025 | <a href="https://github.com/kildcn/wms-platform" className="underline hover:text-blue-300">GitHub</a></p>
         </div>
       </footer>
     </div>

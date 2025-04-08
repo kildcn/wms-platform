@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Package, ShoppingBag, BarChart2, Layers, AlertCircle, Search, Edit, Trash2, Plus, ArrowRight, Eye, RefreshCw, Zap } from 'lucide-react';
+import { getStockByCategory } from '../services/inventoryService';
 
 // Enhanced Dashboard with actions
 const EnhancedWMSDashboard = ({
@@ -30,6 +31,7 @@ const EnhancedWMSDashboard = ({
   const [statusFilter, setStatusFilter] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
   const [inventoryFilter, setInventoryFilter] = useState('');
+  const [stockByCategoryData, setStockByCategoryData] = useState([]);
 
   // Chart data
   const orderStatusData = [
@@ -42,13 +44,20 @@ const EnhancedWMSDashboard = ({
     { status: 'CANCELED', count: orders.filter(o => o.status === 'CANCELED').length }
   ];
 
-  // Aggregate stock by category
-  const stockByCategoryData = Object.entries(
-    products.reduce((acc, product) => {
-      acc[product.category] = (acc[product.category] || 0) + product.stockQuantity;
-      return acc;
-    }, {})
-  ).map(([category, total]) => ({ category, total }));
+  useEffect(() => {
+    const fetchStockByCategory = async () => {
+      try {
+        const data = await getStockByCategory();
+        setStockByCategoryData(
+          Object.entries(data).map(([category, total]) => ({ category, total }))
+        );
+      } catch (error) {
+        console.error('Error fetching stock by category:', error);
+      }
+    };
+
+    fetchStockByCategory();
+  }, []);
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#FF6B6B', '#6B8E23'];
 
@@ -65,11 +74,12 @@ const EnhancedWMSDashboard = ({
   // Filter orders
   const filteredOrders = orders.filter(order => {
     return (
+      order && // Ensure order is not null or undefined
       (orderFilter === '' ||
-        order.orderNumber.toLowerCase().includes(orderFilter.toLowerCase()) ||
-        order.customerId.toString().includes(orderFilter)) &&
+        order.orderNumber?.toLowerCase().includes(orderFilter.toLowerCase()) ||
+        order.customerId?.toString().includes(orderFilter)) &&
       (statusFilter === '' || order.status === statusFilter) &&
-      (priorityFilter === '' || order.priorityLevel.toString() === priorityFilter)
+      (priorityFilter === '' || order.priorityLevel?.toString() === priorityFilter)
     );
   });
 
@@ -196,27 +206,31 @@ const EnhancedWMSDashboard = ({
                 <div className="bg-white p-4 rounded-lg shadow">
                   <h3 className="text-lg font-semibold">Stock by Category</h3>
                   <p className="text-gray-500 text-sm mb-4">Inventory distribution by category</p>
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={stockByCategoryData}
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={100}
-                          fill="#8884d8"
-                          dataKey="total"
-                          nameKey="category"
-                          label={({category, total}) => `${category}: ${total}`}
-                        >
-                          {stockByCategoryData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
+                  {stockByCategoryData.length > 0 ? (
+                    <div className="h-80">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={stockByCategoryData}
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={100}
+                            fill="#8884d8"
+                            dataKey="total"
+                            nameKey="category"
+                            label={({ category, total }) => `${category}: ${total}`}
+                          >
+                            {stockByCategoryData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  ) : (
+                    <p className="text-center text-gray-500">No stock data available</p>
+                  )}
                 </div>
               </div>
 

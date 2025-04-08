@@ -37,6 +37,9 @@ dependencies {
 
     // Event Driven
     implementation("org.springframework.kafka:spring-kafka")
+
+    // Servlet API
+    implementation("javax.servlet:javax.servlet-api:4.0.1")
 }
 
 tasks.withType<KotlinCompile> {

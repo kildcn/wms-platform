@@ -53,8 +53,7 @@ class InventoryService(
 
         // Find location or auto-assign if not specified
         val location = if (locationId != null) {
-            locationRepository.findById(locationId)
-                .orElseThrow { NoSuchElementException("Location not found with id: $locationId") }
+            locationRepository.findById(locationId).orElseThrow { NoSuchElementException("Location not found with id: $locationId") }
         } else {
             findSuitableLocation(product)
         }
@@ -77,7 +76,7 @@ class InventoryService(
             inventoryItemId = savedItem.id,
             actionType = InventoryActionType.ADDED,
             quantity = quantity,
-            destinationLocationId = location.id,
+            destinationLocationId = location.id!!,
             batchNumber = batchNumber,
             notes = "Initial inventory addition"
         )
@@ -99,8 +98,7 @@ class InventoryService(
             throw IllegalArgumentException("Cannot move more than available quantity")
         }
 
-        val newLocation = locationRepository.findById(newLocationId)
-            .orElseThrow { NoSuchElementException("Location not found with id: $newLocationId") }
+        val newLocation = locationRepository.findById(newLocationId).orElseThrow { NoSuchElementException("Location not found with id: $newLocationId") }
 
         val oldLocation = inventoryItem.location
 
@@ -119,8 +117,8 @@ class InventoryService(
                 inventoryItemId = savedItem.id,
                 actionType = InventoryActionType.MOVED,
                 quantity = quantity,
-                sourceLocationId = oldLocation.id,
-                destinationLocationId = newLocation.id,
+                sourceLocationId = oldLocation?.id!!,
+                destinationLocationId = newLocation.id!!,
                 batchNumber = inventoryItem.batchNumber,
                 notes = "Moved entire inventory item"
             )
@@ -155,8 +153,8 @@ class InventoryService(
                 inventoryItemId = savedNewItem.id,
                 actionType = InventoryActionType.MOVED,
                 quantity = quantity,
-                sourceLocationId = oldLocation.id,
-                destinationLocationId = newLocation.id,
+                sourceLocationId = oldLocation?.id!!,
+                destinationLocationId = newLocation.id!!,
                 batchNumber = inventoryItem.batchNumber,
                 notes = "Split from inventory item #${savedOriginalItem.id}"
             )
@@ -196,7 +194,7 @@ class InventoryService(
                     inventoryItemId = item.id,
                     actionType = InventoryActionType.REMOVED,
                     quantity = removedQuantity,
-                    sourceLocationId = location.id,
+                    sourceLocationId = location?.id!!,
                     batchNumber = item.batchNumber,
                     notes = "Completely removed inventory item"
                 )
@@ -217,7 +215,7 @@ class InventoryService(
                     inventoryItemId = item.id,
                     actionType = InventoryActionType.REMOVED,
                     quantity = removedQuantity,
-                    sourceLocationId = location.id,
+                    sourceLocationId = location?.id!!,
                     batchNumber = item.batchNumber,
                     notes = "Partially removed from inventory item"
                 )
@@ -254,7 +252,7 @@ class InventoryService(
             inventoryItemId = savedItem.id,
             actionType = InventoryActionType.QUARANTINED,
             quantity = inventoryItem.quantity,
-            sourceLocationId = inventoryItem.location.id,
+            sourceLocationId = inventoryItem.location?.id!!,
             batchNumber = inventoryItem.batchNumber,
             notes = "Inventory quarantined"
         )
@@ -291,11 +289,26 @@ class InventoryService(
         return inventoryItemRepository.saveAll(updatedItems)
     }
 
+    fun getStockByCategory(): Map<String, Int> {
+        val inventoryItems = inventoryItemRepository.findAll()
+
+        return inventoryItems.groupBy { it.productId }
+            .mapValues { (productId, items) ->
+                items.sumOf { it.quantity }
+            }
+            .mapKeys { (productId, _) ->
+                productRepository.findById(productId).orElseThrow { NoSuchElementException("Product not found with id: $productId") }.category
+            }
+            .entries
+            .groupBy({ it.key }, { it.value })
+            .mapValues { (_, quantities) -> quantities.sum() }
+    }
+
     // Helper methods
     private fun findSuitableLocation(product: Product): WarehouseLocation {
         // First try to find a location that already has this product
         val existingLocations = inventoryItemRepository.findByProductId(product.id!!)
-            .mapNotNull { it.location.id }
+            .mapNotNull { it.location?.id }
             .distinct()
             .mapNotNull { locationRepository.findById(it).orElse(null) }
             .filter { it.currentWeight + product.weight.toDouble() <= it.maxWeight }
@@ -329,8 +342,8 @@ class InventoryService(
         }
     }
 
-    private fun updateLocationStatus(location: WarehouseLocation) {
-        val items = inventoryItemRepository.findByLocationId(location.id!!)
+    private fun updateLocationStatus(location: WarehouseLocation?) {
+        val items = inventoryItemRepository.findByLocationId(location?.id!!)
         val totalWeight = items.sumOf {
             val product = productRepository.findById(it.productId).orElse(null)
             (product?.weight?.toDouble() ?: 0.0) * it.quantity

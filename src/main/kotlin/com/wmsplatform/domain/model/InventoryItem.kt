@@ -2,7 +2,6 @@ package com.wmsplatform.domain.model
 
 import jakarta.persistence.*
 import java.time.LocalDateTime
-import com.fasterxml.jackson.annotation.JsonIgnore
 
 @Entity
 @Table(name = "inventory_items")
@@ -14,27 +13,22 @@ data class InventoryItem(
     @Column(name = "product_id", nullable = false)
     val productId: Long,
 
-    @Column(nullable = false)
-    val quantity: Int,
-
-    @JsonIgnore
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_id")
-    val location: WarehouseLocation,
-
-    @Column(name = "last_counted_at")
-    val lastCountedAt: LocalDateTime? = null,
-
-    @Column(name = "expiry_date")
-    val expiryDate: LocalDateTime? = null,
+    val location: WarehouseLocation? = null,
 
     @Column(name = "batch_number")
     val batchNumber: String? = null,
 
-    @Column(name = "is_quarantined")
-    val isQuarantined: Boolean = false,
+    @Column(name = "expiry_date")
+    val expiryDate: LocalDateTime? = null,
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    val createdAt: LocalDateTime = LocalDateTime.now()
+    @Column(name = "last_counted_at")
+    val lastCountedAt: LocalDateTime? = null,
+
+    @Column(nullable = false)
+    val quantity: Int,
+
+    @Column(name = "is_quarantined", nullable = false)
+    val isQuarantined: Boolean = false
 )

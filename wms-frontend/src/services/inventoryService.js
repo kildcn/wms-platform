@@ -111,3 +111,14 @@ export const cycleCount = async (locationId) => {
     throw error;
   }
 };
+
+export const getStockByCategory = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/inventory/stock-by-category`);
+    if (!response.ok) throw new Error('Failed to fetch stock by category');
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching stock by category:', error);
+    throw error;
+  }
+};

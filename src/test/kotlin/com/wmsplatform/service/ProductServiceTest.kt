@@ -2,6 +2,7 @@ package com.wmsplatform.service
 
 import com.wmsplatform.domain.model.Product
 import com.wmsplatform.domain.repository.ProductRepository
+import com.wmsplatform.domain.repository.InventoryRepository
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import org.junit.jupiter.api.Assertions.*
@@ -19,10 +20,12 @@ class ProductServiceTest {
 
     private lateinit var productService: ProductService
 
+    private val inventoryRepository: InventoryRepository = mockk()
+
     @BeforeEach
     fun setUp() {
         MockKAnnotations.init(this)
-        productService = ProductService(productRepository)
+        productService = ProductService(productRepository, inventoryRepository)
     }
 
     @Test

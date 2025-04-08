@@ -48,6 +48,11 @@ class InventoryController(private val inventoryService: InventoryService) {
         return ResponseEntity.ok(inventoryService.getItemsExpiringWithinDays(days))
     }
 
+    @GetMapping("/stock-by-category")
+    fun getStockByCategory(): ResponseEntity<Map<String, Int>> {
+        return ResponseEntity.ok(inventoryService.getStockByCategory())
+    }
+
     @PostMapping("/add")
     fun addInventory(
         @RequestParam productId: Long,

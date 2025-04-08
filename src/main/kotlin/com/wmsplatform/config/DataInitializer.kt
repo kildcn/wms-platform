@@ -66,6 +66,8 @@ class DataInitializer {
         val historyRecords = mutableListOf<InventoryHistory>()
 
         inventoryItems.forEach { item ->
+            val createdAt = LocalDateTime.now()
+            val locationId = item.location?.id ?: throw IllegalStateException("Location is null")
             historyRecords.add(
                 InventoryHistory(
                     productId = item.productId,
@@ -73,12 +75,12 @@ class DataInitializer {
                     actionType = InventoryActionType.ADDED,
                     quantity = item.quantity,
                     sourceLocationId = null, // Provide a default value if not applicable
-                    destinationLocationId = item.location.id,
+                    destinationLocationId = locationId,
                     userId = null, // Provide a default value if not applicable
                     batchNumber = item.batchNumber ?: "N/A",
                     username = "System",
                     notes = "Initial inventory creation",
-                    timestamp = item.createdAt.minusDays(random.nextInt(30).toLong())
+                    timestamp = createdAt.minusDays(random.nextInt(30).toLong())
                 )
             )
         }

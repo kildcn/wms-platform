@@ -153,3 +153,18 @@ data class ProductSummaryDto(
         }
     }
 }
+
+data class ProductDto(
+    val id: Long?,
+    val sku: String,
+    val name: String,
+    val description: String,
+    val weight: Double,
+    val width: Double,
+    val height: Double,
+    val depth: Double,
+    val createdAt: LocalDateTime,
+    val updatedAt: LocalDateTime?,
+    val category: String,
+    val stockQuantity: Int
+)

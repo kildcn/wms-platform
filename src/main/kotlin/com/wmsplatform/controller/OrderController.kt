@@ -87,4 +87,23 @@ class OrderController(private val orderService: OrderService) {
             ResponseEntity.badRequest().build()
         }
     }
+
+    @PatchMapping("/{orderId}/status")
+    fun updateOrderStatus(@PathVariable orderId: Long, @RequestParam status: String): ResponseEntity<Order> {
+        return try {
+            val orderStatus = OrderStatus.valueOf(status.uppercase())
+            val updatedOrder = orderService.updateOrderStatus(orderId, orderStatus)
+            ResponseEntity.ok(updatedOrder)
+        } catch (e: IllegalArgumentException) {
+            ResponseEntity.badRequest().body(null) // Invalid status value
+        } catch (e: NoSuchElementException) {
+            ResponseEntity.notFound().build() // Order not found
+        }
+    }
+
+    @ExceptionHandler(IllegalStateException::class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    fun handleIllegalStateException(e: IllegalStateException): ResponseEntity<String> {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(e.message)
+    }
 }

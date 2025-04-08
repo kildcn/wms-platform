@@ -9,6 +9,7 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
+import org.slf4j.LoggerFactory
 
 @Service
 class OrderService(
@@ -16,6 +17,8 @@ class OrderService(
     private val productRepository: ProductRepository,
     private val eventPublisher: ApplicationEventPublisher
 ) {
+
+    private val logger = LoggerFactory.getLogger(OrderService::class.java)
 
     fun getOrderById(id: Long): Order {
         return orderRepository.findById(id)
@@ -65,33 +68,23 @@ class OrderService(
     }
 
     @Transactional
-    fun updateOrderStatus(id: Long, newStatus: OrderStatus): Order {
-        val order = getOrderById(id)
-        val oldStatus = order.status
-
-        if (oldStatus == newStatus) {
-            return order  // No change required
+    fun updateOrderStatus(orderId: Long, status: OrderStatus): Order {
+        val order = orderRepository.findById(orderId).orElseThrow {
+            NoSuchElementException("Order not found with id: $orderId")
         }
 
-        // Validate state transition
-        validateStatusTransition(oldStatus, newStatus)
+        logger.info("Updating order status: orderId=$orderId, currentStatus=${order.status}, newStatus=$status")
+
+        validateStatusTransition(order.status, status)
 
         val updatedOrder = order.copy(
-            status = newStatus,
+            status = status,
             updatedAt = LocalDateTime.now()
         )
 
-        val savedOrder = orderRepository.save(updatedOrder)
+        logger.info("Order status updated successfully: orderId=$orderId, newStatus=$status")
 
-        // Publish an event for the status change
-        eventPublisher.publishEvent(OrderStatusChangedEvent(
-            this,
-            savedOrder.id!!,
-            oldStatus,
-            newStatus
-        ))
-
-        return savedOrder
+        return orderRepository.save(updatedOrder)
     }
 
     @Transactional
@@ -122,7 +115,7 @@ class OrderService(
         return savedOrder
     }
 
-    // Helper method to validate status transitions
+    // Ensure validateStatusTransition allows the desired transition
     private fun validateStatusTransition(oldStatus: OrderStatus, newStatus: OrderStatus) {
         val validTransitions = mapOf(
             OrderStatus.CREATED to listOf(OrderStatus.PROCESSING, OrderStatus.CANCELED),
@@ -134,8 +127,11 @@ class OrderService(
             OrderStatus.CANCELED to emptyList()
         )
 
-        if (!validTransitions[oldStatus]!!.contains(newStatus)) {
-            throw IllegalStateException("Cannot transition from $oldStatus to $newStatus")
+        logger.info("Validating status transition: oldStatus=$oldStatus, newStatus=$newStatus")
+
+        if (newStatus !in validTransitions[oldStatus] ?: emptyList()) {
+            logger.error("Invalid status transition from $oldStatus to $newStatus")
+            throw IllegalStateException("Invalid status transition from $oldStatus to $newStatus")
         }
     }
 }

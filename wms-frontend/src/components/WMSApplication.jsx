@@ -198,7 +198,7 @@ const WMSApplication = () => {
       );
     } catch (err) {
       console.error("Error updating order status:", err);
-      alert(`Error: ${err.message}`);
+      alert(`Error updating order status: ${err.message}`);
     }
   };
 

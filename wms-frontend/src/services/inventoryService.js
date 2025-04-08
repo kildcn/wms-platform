@@ -1,10 +1,30 @@
 import { API_BASE_URL } from '../config/api';
 
+// Helper to handle API responses consistently
+const handleResponse = async (response, errorMessage) => {
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error(`API Error (${response.status}): ${errorText}`);
+    throw new Error(errorMessage || `API Error: ${response.status}`);
+  }
+
+  // Handle empty responses (like 204 No Content)
+  if (response.status === 204) {
+    return null;
+  }
+
+  try {
+    return await response.json();
+  } catch (error) {
+    console.error('Error parsing JSON response:', error);
+    return null; // Return null for empty responses
+  }
+};
+
 export const getInventoryItemById = async (id) => {
   try {
     const response = await fetch(`${API_BASE_URL}/inventory/${id}`);
-    if (!response.ok) throw new Error(`Failed to fetch inventory item with ID: ${id}`);
-    return await response.json();
+    return await handleResponse(response, `Failed to fetch inventory item with ID: ${id}`);
   } catch (error) {
     console.error(`Error fetching inventory item with ID ${id}:`, error);
     throw error;
@@ -14,8 +34,7 @@ export const getInventoryItemById = async (id) => {
 export const getInventoryByProduct = async (productId) => {
   try {
     const response = await fetch(`${API_BASE_URL}/inventory/product/${productId}`);
-    if (!response.ok) throw new Error(`Failed to fetch inventory for product ID: ${productId}`);
-    return await response.json();
+    return await handleResponse(response, `Failed to fetch inventory for product ID: ${productId}`);
   } catch (error) {
     console.error(`Error fetching inventory for product ID ${productId}:`, error);
     throw error;
@@ -25,8 +44,7 @@ export const getInventoryByProduct = async (productId) => {
 export const getInventoryByLocation = async (locationId) => {
   try {
     const response = await fetch(`${API_BASE_URL}/inventory/location/${locationId}`);
-    if (!response.ok) throw new Error(`Failed to fetch inventory for location ID: ${locationId}`);
-    return await response.json();
+    return await handleResponse(response, `Failed to fetch inventory for location ID: ${locationId}`);
   } catch (error) {
     console.error(`Error fetching inventory for location ID ${locationId}:`, error);
     throw error;
@@ -35,19 +53,20 @@ export const getInventoryByLocation = async (locationId) => {
 
 export const addInventory = async (inventory) => {
   try {
-    const { productId, quantity, locationId, batchNumber, expiryDate } = inventory;
+    // Build query params
+    const params = new URLSearchParams();
+    params.append('productId', inventory.productId);
+    params.append('quantity', inventory.quantity);
 
-    let url = `${API_BASE_URL}/inventory/add?productId=${productId}&quantity=${quantity}`;
-    if (locationId) url += `&locationId=${locationId}`;
-    if (batchNumber) url += `&batchNumber=${batchNumber}`;
-    if (expiryDate) url += `&expiryDate=${expiryDate}`;
+    if (inventory.locationId) params.append('locationId', inventory.locationId);
+    if (inventory.batchNumber) params.append('batchNumber', inventory.batchNumber);
+    if (inventory.expiryDate) params.append('expiryDate', inventory.expiryDate);
 
-    const response = await fetch(url, {
+    const response = await fetch(`${API_BASE_URL}/inventory/add?${params.toString()}`, {
       method: 'POST'
     });
 
-    if (!response.ok) throw new Error('Failed to add inventory');
-    return await response.json();
+    return await handleResponse(response, 'Failed to add inventory');
   } catch (error) {
     console.error('Error adding inventory:', error);
     throw error;
@@ -62,8 +81,8 @@ export const moveInventory = async (inventoryItemId, newLocationId, quantity) =>
         method: 'POST'
       }
     );
-    if (!response.ok) throw new Error('Failed to move inventory');
-    return await response.json();
+
+    return await handleResponse(response, 'Failed to move inventory');
   } catch (error) {
     console.error('Error moving inventory:', error);
     throw error;
@@ -78,8 +97,8 @@ export const removeInventory = async (productId, quantity) => {
         method: 'POST'
       }
     );
-    if (!response.ok) throw new Error('Failed to remove inventory');
-    return await response.json();
+
+    return await handleResponse(response, 'Failed to remove inventory');
   } catch (error) {
     console.error('Error removing inventory:', error);
     throw error;
@@ -91,8 +110,8 @@ export const quarantineInventory = async (inventoryItemId) => {
     const response = await fetch(`${API_BASE_URL}/inventory/${inventoryItemId}/quarantine`, {
       method: 'POST'
     });
-    if (!response.ok) throw new Error('Failed to quarantine inventory');
-    return await response.json();
+
+    return await handleResponse(response, 'Failed to quarantine inventory');
   } catch (error) {
     console.error('Error quarantining inventory:', error);
     throw error;
@@ -104,8 +123,8 @@ export const cycleCount = async (locationId) => {
     const response = await fetch(`${API_BASE_URL}/inventory/location/${locationId}/count`, {
       method: 'POST'
     });
-    if (!response.ok) throw new Error('Failed to perform cycle count');
-    return await response.json();
+
+    return await handleResponse(response, 'Failed to perform cycle count');
   } catch (error) {
     console.error('Error performing cycle count:', error);
     throw error;
@@ -115,8 +134,7 @@ export const cycleCount = async (locationId) => {
 export const getStockByCategory = async () => {
   try {
     const response = await fetch(`${API_BASE_URL}/inventory/stock-by-category`);
-    if (!response.ok) throw new Error('Failed to fetch stock by category');
-    return await response.json();
+    return await handleResponse(response, 'Failed to fetch stock by category');
   } catch (error) {
     console.error('Error fetching stock by category:', error);
     throw error;

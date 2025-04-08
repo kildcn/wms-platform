@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import EnhancedWMSDashboard from './EnhancedWMSDashboard';
 import ProductForm from './ProductForm';
 import OrderForm from './OrderForm';
 import { AddInventoryForm, MoveInventoryForm, InventoryDetail } from './InventoryComponents';
 import InventoryHistory from './InventoryHistory';
+import { AlertTriangle } from 'lucide-react';
+import { API_BASE_URL } from '../config/api';
 
 // Import services
 import * as productService from '../services/productService';
@@ -11,13 +13,29 @@ import * as orderService from '../services/orderService';
 import * as inventoryService from '../services/inventoryService';
 import * as locationService from '../services/locationService';
 
-// Main application component that integrates all others
+// Toast notification component for feedback
+const Toast = ({ message, type = 'success', onClose }) => {
+  const bgColor = type === 'success' ? 'bg-green-100 border-green-400 text-green-700' :
+                 'bg-red-100 border-red-400 text-red-700';
+
+  return (
+    <div className={`fixed bottom-4 right-4 p-4 rounded-md border ${bgColor} shadow-md max-w-md z-50 flex justify-between items-center`}>
+      {type === 'error' && <AlertTriangle className="h-5 w-5 mr-2" />}
+      <span>{message}</span>
+      <button onClick={onClose} className="ml-4 text-gray-500 hover:text-gray-700">×</button>
+    </div>
+  );
+};
+
+// Main application component
 const WMSApplication = () => {
-  // State for products, orders, and inventory
+  // State for data
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [locations, setLocations] = useState([]);
+  const [lowStockProducts, setLowStockProducts] = useState([]);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   // UI state for modals and forms
   const [activeTab, setActiveTab] = useState('overview');
@@ -31,56 +49,108 @@ const WMSApplication = () => {
   const [showInventoryHistory, setShowInventoryHistory] = useState(false);
   const [selectedProductForHistory, setSelectedProductForHistory] = useState(null);
 
-  // Error and loading states
+  // Toast notification state
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+
+  // Loading and error states
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Show a toast notification
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 5000);
+  };
+
+  // Close the toast notification
+  const closeToast = () => {
+    setToast({ show: false, message: '', type: 'success' });
+  };
+
+  // Fetch products with error handling
+  const fetchProducts = useCallback(async () => {
+    try {
+      const data = await productService.getAllProducts();
+      setProducts(data);
+
+      // Separately fetch low stock products
+      const lowStock = await productService.getLowStockProducts();
+      setLowStockProducts(lowStock);
+
+      return data;
+    } catch (err) {
+      console.error("Error fetching products:", err);
+      throw err;
+    }
+  }, []);
+
+  // Fetch all orders with error handling
+  const fetchOrders = useCallback(async () => {
+    try {
+      const data = await orderService.getAllOrders();
+      setOrders(data);
+      return data;
+    } catch (err) {
+      console.error("Error fetching orders:", err);
+      throw err;
+    }
+  }, []);
+
+  // Fetch inventory for a product with error handling
+  const fetchInventory = useCallback(async (productId) => {
+    if (!productId) return [];
+
+    try {
+      const data = await inventoryService.getInventoryByProduct(productId);
+      setInventory(data);
+      return data;
+    } catch (err) {
+      console.error(`Error fetching inventory for product ${productId}:`, err);
+      throw err;
+    }
+  }, []);
+
+  // Fetch all locations with error handling
+  const fetchLocations = useCallback(async () => {
+    try {
+      const data = await locationService.getAllLocations();
+      setLocations(data);
+      return data;
+    } catch (err) {
+      console.error("Error fetching locations:", err);
+      throw err;
+    }
+  }, []);
+
   // Fetch initial data
   useEffect(() => {
-    const fetchData = async () => {
+    const loadInitialData = async () => {
       try {
         setLoading(true);
+        setError(null);
 
-        // Use the actual API calls
-        const fetchProducts = productService.getAllProducts();
-        const fetchOrders = orderService.getAllOrders();
-        const fetchLocations = locationService.getLocations();
-
-        // Wait for all API calls to complete
+        // Fetch all required data in parallel
         const [productsData, ordersData, locationsData] = await Promise.all([
-          fetchProducts,
-          fetchOrders,
-          fetchLocations
+          fetchProducts(),
+          fetchOrders(),
+          fetchLocations()
         ]);
 
-        // Once we have products, fetch inventory for the first product if any exist
-        let inventoryData = [];
+        // Once we have products, fetch inventory for the first product
         if (productsData.length > 0) {
-          try {
-            inventoryData = await inventoryService.getInventoryByProduct(productsData[0].id);
-          } catch (err) {
-            console.error("Failed to load inventory data:", err);
-            // Don't fail the whole app if just inventory fails
-          }
+          await fetchInventory(productsData[0].id);
         }
-
-        setProducts(productsData);
-        setOrders(ordersData);
-        setInventory(inventoryData);
-        setLocations(locationsData);
 
         setLoading(false);
       } catch (err) {
-        console.error("Error fetching data:", err);
-        setError(err.message || "Failed to load application data");
+        console.error("Failed to load initial data:", err);
+        setError("Failed to load application data. Please try refreshing the page.");
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, []);
-
-  // Handler functions for various actions
+    loadInitialData();
+  }, [fetchProducts, fetchOrders, fetchInventory, fetchLocations]);
 
   // Product handlers
   const handleCreateProduct = () => {
@@ -96,42 +166,56 @@ const WMSApplication = () => {
   const handleSaveProduct = async (productData) => {
     try {
       if (editingProduct) {
-        // Update existing product via API
+        // Update existing product
         const updatedProduct = await productService.updateProduct(editingProduct.id, productData);
 
-        // Update local state
+        // Update products list with the updated product
         setProducts(prevProducts =>
-          prevProducts.map(p =>
-            p.id === editingProduct.id ? updatedProduct : p
-          )
+          prevProducts.map(p => p.id === updatedProduct.id ? updatedProduct : p)
         );
+
+        showToast(`Product "${updatedProduct.name}" updated successfully`);
       } else {
-        // Create new product via API
+        // Create new product
         const newProduct = await productService.createProduct(productData);
 
-        // Add to local state
+        // Add new product to the list
         setProducts(prevProducts => [...prevProducts, newProduct]);
+
+        showToast(`Product "${newProduct.name}" created successfully`);
       }
+
       setShowProductForm(false);
       setEditingProduct(null);
+
+      // Update low stock products if necessary
+      if (productData.stockQuantity < 10) {
+        fetchProducts(); // Refetch to update low stock list
+      }
     } catch (err) {
       console.error("Error saving product:", err);
-      alert(`Error: ${err.message}`);
+      showToast(`Error: ${err.message || "Failed to save product"}`, 'error');
     }
   };
 
   const handleDeleteProduct = async (productId) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
-      try {
-        // Delete via API
-        await productService.deleteProduct(productId);
+    if (!window.confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+      return;
+    }
 
-        // Update local state
-        setProducts(prevProducts => prevProducts.filter(p => p.id !== productId));
-      } catch (err) {
-        console.error("Error deleting product:", err);
-        alert(`Error: ${err.message}`);
-      }
+    try {
+      await productService.deleteProduct(productId);
+
+      // Remove product from list
+      setProducts(prevProducts => prevProducts.filter(p => p.id !== productId));
+
+      // Also remove from low stock if it was there
+      setLowStockProducts(prev => prev.filter(p => p.id !== productId));
+
+      showToast('Product deleted successfully');
+    } catch (err) {
+      console.error("Error deleting product:", err);
+      showToast(`Error: ${err.message || "Failed to delete product"}`, 'error');
     }
   };
 
@@ -148,63 +232,89 @@ const WMSApplication = () => {
 
   const handleViewOrder = async (order) => {
     try {
-      // Get complete order details from API
+      // Get complete order details
       const orderDetails = await orderService.getOrderById(order.id);
       setEditingOrder(orderDetails);
       setShowOrderForm(true);
     } catch (err) {
       console.error("Error fetching order details:", err);
-      alert(`Error: ${err.message}`);
+      showToast(`Error: ${err.message || "Failed to fetch order details"}`, 'error');
     }
   };
 
   const handleSaveOrder = async (orderData) => {
     try {
       if (editingOrder) {
-        // For updating an existing order
-        console.log("Updating order status:", orderData.status);
-
-        // Update status
+        // Update existing order status
         const updatedOrder = await orderService.updateOrderStatus(
           editingOrder.id,
           orderData.status
         );
 
-        // Update local state
+        // Update orders list
         setOrders(prevOrders =>
-          prevOrders.map(o =>
-            o.id === editingOrder.id ? { ...o, ...updatedOrder } : o
-          )
+          prevOrders.map(o => o.id === editingOrder.id ? { ...o, status: updatedOrder.status } : o)
         );
+
+        showToast(`Order ${editingOrder.orderNumber} updated to status: ${updatedOrder.status}`);
       } else {
-        // Create new order via API
+        // Create new order
         const newOrder = await orderService.createOrder(orderData);
 
-        // Add to local state
+        // Add to orders list
         setOrders(prevOrders => [...prevOrders, newOrder]);
+
+        showToast(`New order ${newOrder.orderNumber} created successfully`);
       }
+
       setShowOrderForm(false);
       setEditingOrder(null);
     } catch (err) {
       console.error("Error saving order:", err);
-      alert(`Error: ${err.message}`);
+      showToast(`Error: ${err.message || "Failed to save order"}`, 'error');
     }
   };
 
   const handleUpdateOrderStatus = async (orderId, newStatus) => {
     try {
-      // Update status via API
-      const updatedOrder = await orderService.updateOrderStatus(orderId, newStatus);
+      setIsUpdatingStatus(true);
+
+      console.log(`Directly updating order ${orderId} to status ${newStatus}`);
+
+      // Try direct API call with different format
+      const response = await fetch(`${API_BASE_URL}/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      console.log(`Status update response: ${response.status}`);
+
+      // Even if there's an error response, we'll update the UI
+      // This is a workaround for backend issues
 
       // Update local state
       setOrders(prevOrders =>
-        prevOrders.map(order =>
-          order.id === orderId ? updatedOrder : order
-        )
+        prevOrders.map(order => order.id === orderId ? { ...order, status: newStatus } : order)
       );
+
+      if (response.ok) {
+        showToast(`Order status updated to: ${newStatus}`);
+      } else {
+        // Update UI anyway but show a warning
+        console.warn(`Backend reported error ${response.status} but UI was updated anyway`);
+        showToast(`Status updated to ${newStatus} (but backend reported an error)`, 'warning');
+      }
     } catch (err) {
       console.error("Error updating order status:", err);
-      alert(`Error updating order status: ${err.message}`);
+      showToast(`Error: ${err.message || "Failed to update order status"}`, 'error');
+
+      // Optional: Update UI anyway as a fallback
+      setOrders(prevOrders =>
+        prevOrders.map(order => order.id === orderId ? { ...order, status: newStatus } : order)
+      );
+    } finally {
+      setIsUpdatingStatus(false);
     }
   };
 
@@ -219,47 +329,85 @@ const WMSApplication = () => {
 
   const handleSaveNewInventory = async (inventoryData) => {
     try {
-      // Add inventory via API
+      // Add inventory
       const newItem = await inventoryService.addInventory(inventoryData);
 
-      // Update local state
+      // Update inventory list
       setInventory(prevInventory => [...prevInventory, newItem]);
 
       // Refresh the product to update its stock quantity
       const updatedProduct = await productService.getProductById(inventoryData.productId);
+
+      // Update products list
       setProducts(prevProducts =>
-        prevProducts.map(p =>
-          p.id === inventoryData.productId ? updatedProduct : p
-        )
+        prevProducts.map(p => p.id === updatedProduct.id ? updatedProduct : p)
       );
 
+      // Update low stock products if necessary
+      if (updatedProduct.stockQuantity < 10) {
+        // Add to low stock list if not already there
+        setLowStockProducts(prev =>
+          prev.some(p => p.id === updatedProduct.id)
+            ? prev.map(p => p.id === updatedProduct.id ? updatedProduct : p)
+            : [...prev, updatedProduct]
+        );
+      } else {
+        // Remove from low stock list if it was there
+        setLowStockProducts(prev => prev.filter(p => p.id !== updatedProduct.id));
+      }
+
+      showToast('Inventory added successfully');
       setShowAddInventoryForm(false);
     } catch (err) {
       console.error("Error adding inventory:", err);
-      alert(`Error: ${err.message}`);
+      showToast(`Error: ${err.message || "Failed to add inventory"}`, 'error');
     }
   };
 
   const handleSaveMoveInventory = async (moveData) => {
     try {
-      // Move inventory via API
+      // Format data properly
+      const formattedData = {
+        inventoryItemId: parseInt(moveData.inventoryItemId, 10),
+        newLocationId: parseInt(moveData.newLocationId, 10),
+        quantity: parseInt(moveData.quantity, 10)
+      };
+
+      // Move inventory
       const updatedItem = await inventoryService.moveInventory(
-        moveData.inventoryItemId,
-        moveData.newLocationId,
-        moveData.quantity
+        formattedData.inventoryItemId,
+        formattedData.newLocationId,
+        formattedData.quantity
       );
 
-      // Update local state - this is simplified and would need to handle split cases in real app
+      // Update inventory list - handle both full moves and splits
       setInventory(prevInventory => {
-        return prevInventory.map(item =>
-          item.id === parseInt(moveData.inventoryItemId) ? updatedItem : item
-        );
+        // Find the source item
+        const sourceItem = prevInventory.find(item => item.id === formattedData.inventoryItemId);
+
+        if (sourceItem.quantity === formattedData.quantity) {
+          // Full move - replace the item
+          return prevInventory.map(item =>
+            item.id === formattedData.inventoryItemId ? updatedItem : item
+          );
+        } else {
+          // Split - update source item quantity and add the new item
+          return [
+            ...prevInventory.map(item =>
+              item.id === formattedData.inventoryItemId
+                ? { ...item, quantity: item.quantity - formattedData.quantity }
+                : item
+            ),
+            updatedItem
+          ];
+        }
       });
 
+      showToast('Inventory moved successfully');
       setShowMoveInventoryForm(false);
     } catch (err) {
       console.error("Error moving inventory:", err);
-      alert(`Error: ${err.message}`);
+      showToast(`Error: ${err.message || "Failed to move inventory"}`, 'error');
     }
   };
 
@@ -275,15 +423,11 @@ const WMSApplication = () => {
     try {
       // Get product details
       const product = await productService.getProductById(productId);
-
-      // Here you would typically fetch inventory history as well
-      // const inventoryHistory = await inventoryService.getProductInventoryHistory(productId);
-
       setSelectedProductForHistory(product);
       setShowInventoryHistory(true);
     } catch (err) {
       console.error("Error fetching inventory history:", err);
-      alert(`Error: ${err.message}`);
+      showToast(`Error: ${err.message || "Failed to fetch inventory history"}`, 'error');
     }
   };
 
@@ -292,7 +436,7 @@ const WMSApplication = () => {
     setSelectedProductForHistory(null);
   };
 
-  // If loading, show loading screen
+  // Show loading screen while initial data is loading
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-100">
@@ -305,14 +449,12 @@ const WMSApplication = () => {
     );
   }
 
-  // If error, show error screen
+  // Show error screen if initial data loading failed
   if (error) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-100">
         <div className="text-center max-w-md p-6 bg-white rounded-lg shadow-lg">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-red-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
+          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-700 mb-2">Error Loading Data</h2>
           <p className="text-gray-500 mb-4">{error}</p>
           <button
@@ -336,7 +478,7 @@ const WMSApplication = () => {
         orders={orders}
         inventory={inventory}
         locations={locations}
-        lowStockProducts={products.filter(p => p.stockQuantity < 10)}
+        lowStockProducts={lowStockProducts}
         onCreateProduct={handleCreateProduct}
         onEditProduct={handleEditProduct}
         onDeleteProduct={handleDeleteProduct}
@@ -402,8 +544,16 @@ const WMSApplication = () => {
         <InventoryHistory
           productId={selectedProductForHistory.id}
           productName={selectedProductForHistory.name}
-          history={[]} // In a real app, fetch history data
           onClose={handleCloseInventoryHistory}
+        />
+      )}
+
+      {/* Toast Notification */}
+      {toast.show && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={closeToast}
         />
       )}
     </div>

@@ -13,8 +13,9 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [touchedFields, setTouchedFields] = useState({});
 
-  // If editing an existing order, populate the form
+  // Populate form when editing an existing order
   useEffect(() => {
     if (existingOrder) {
       setFormData({
@@ -33,11 +34,18 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
     }
   }, [existingOrder]);
 
+  // Handle form field changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
+    }));
+
+    // Mark field as touched
+    setTouchedFields(prev => ({
+      ...prev,
+      [name]: true
     }));
 
     // Clear error for this field when user starts typing
@@ -49,6 +57,7 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
     }
   };
 
+  // Handle item-specific field changes
   const handleItemChange = (index, field, value) => {
     const updatedItems = [...formData.items];
     updatedItems[index] = {
@@ -61,16 +70,24 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
       items: updatedItems
     }));
 
-    // Clear error for this item when user updates it
-    if (errors[`items[${index}].${field}`]) {
+    // Mark field as touched
+    const fieldKey = `items[${index}].${field}`;
+    setTouchedFields(prev => ({
+      ...prev,
+      [fieldKey]: true
+    }));
+
+    // Clear error for this item field when user updates it
+    if (errors[fieldKey]) {
       setErrors(prev => {
         const newErrors = { ...prev };
-        delete newErrors[`items[${index}].${field}`];
+        delete newErrors[fieldKey];
         return newErrors;
       });
     }
   };
 
+  // Add a new empty item to the order
   const handleAddItem = () => {
     setFormData(prev => ({
       ...prev,
@@ -87,77 +104,211 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
     }));
   };
 
+  // Remove an item from the order
   const handleRemoveItem = (index) => {
     const updatedItems = [...formData.items];
     updatedItems.splice(index, 1);
+
     setFormData(prev => ({
       ...prev,
       items: updatedItems
     }));
+
+    // Remove any errors for this item
+    setErrors(prev => {
+      const newErrors = { ...prev };
+      Object.keys(newErrors).forEach(key => {
+        if (key.startsWith(`items[${index}]`)) {
+          delete newErrors[key];
+        }
+      });
+      return newErrors;
+    });
   };
 
+  // Handle product selection and populate related fields
+  // Improved handleProductSelection function
   const handleProductSelection = (index, productId) => {
+    console.log(`Selected product ID: ${productId} for item at index: ${index}`);
+
     if (!productId) return;
 
-    // Convert strings to appropriate types
-    const productIdNum = parseInt(productId, 10);
+    // Find the selected product
+    const product = products.find(p => p.id.toString() === productId.toString());
 
-    // Find the product
-    const selectedProduct = products.find(p => p.id === productIdNum);
-
-    if (!selectedProduct) {
+    if (!product) {
       console.error('Product not found for ID:', productId);
       return;
     }
 
-    handleItemChange(index, 'productId', productIdNum);
-    handleItemChange(index, 'productSku', selectedProduct.sku);
-    handleItemChange(index, 'productName', selectedProduct.name);
+    // Create a new items array to ensure React detects the change
+    const updatedItems = [...formData.items];
+    updatedItems[index] = {
+      ...updatedItems[index],
+      productId: productId.toString(),
+      productSku: product.sku,
+      productName: product.name,
+      // Set default price based on weight
+      price: (parseFloat(product.weight) * 10 + 5).toFixed(2)
+    };
 
-    // Set a default price based on weight
-    const defaultPrice = parseFloat(selectedProduct.weight) * 10 + 5;
-    handleItemChange(index, 'price', defaultPrice.toFixed(2));
-  }
+    // Update the entire formData state at once
+    setFormData(prev => ({
+      ...prev,
+      items: updatedItems
+    }));
 
+    console.log('Updated items:', updatedItems);
+  };
+
+  // Validate individual field
+  const validateField = (name, value) => {
+    // For nested fields (items array)
+    if (name.startsWith('items[')) {
+      const match = name.match(/items\[(\d+)\]\.(\w+)/);
+      if (match) {
+        const [, indexStr, field] = match;
+        const index = parseInt(indexStr, 10);
+        const item = formData.items[index];
+
+        switch (field) {
+          case 'productId':
+            return value ? null : 'Product is required';
+          case 'quantity':
+            if (!value) return 'Quantity is required';
+            if (isNaN(parseInt(value, 10)) || parseInt(value, 10) <= 0)
+              return 'Quantity must be greater than 0';
+            return null;
+          case 'price':
+            if (!value) return 'Price is required';
+            if (isNaN(parseFloat(value)) || parseFloat(value) <= 0)
+              return 'Price must be greater than 0';
+            return null;
+          default:
+            return null;
+        }
+      }
+      return null;
+    }
+
+    // For top-level fields
+    switch (name) {
+      case 'orderNumber':
+        if (!value.trim()) return 'Order number is required';
+        if (!/^[A-Za-z0-9-]{3,}$/.test(value))
+          return 'Order number must be at least 3 characters and contain only letters, numbers, and hyphens';
+        return null;
+
+      case 'customerId':
+        if (!value.trim()) return 'Customer ID is required';
+        if (isNaN(parseInt(value, 10)))
+          return 'Customer ID must be a number';
+        return null;
+
+      case 'shippingAddress':
+        if (!value.trim()) return 'Shipping address is required';
+        if (value.length < 10) return 'Please enter a complete shipping address';
+        return null;
+
+      default:
+        return null;
+    }
+  };
+
+  // Validate the entire form
   const validateForm = () => {
     const newErrors = {};
+    let isValid = true;
 
-    // Required fields
-    if (!formData.orderNumber) newErrors.orderNumber = 'Order number is required';
-    if (!formData.customerId) newErrors.customerId = 'Customer ID is required';
-    if (!formData.shippingAddress) newErrors.shippingAddress = 'Shipping address is required';
+    // Validate top-level fields
+    ['orderNumber', 'customerId', 'shippingAddress'].forEach(field => {
+      const error = validateField(field, formData[field]);
+      if (error) {
+        newErrors[field] = error;
+        isValid = false;
+      }
+    });
 
-    // Numeric validations
-    if (formData.customerId && isNaN(parseInt(formData.customerId, 10)))
-      newErrors.customerId = 'Customer ID must be a number';
-
-    // Items validation
+    // Check if any items exist
     if (formData.items.length === 0) {
       newErrors.items = 'At least one item is required';
+      isValid = false;
     } else {
+      // Validate each item
       formData.items.forEach((item, index) => {
-        if (!item.productId)
-          newErrors[`items[${index}].productId`] = 'Product is required';
-        if (!item.quantity || parseInt(item.quantity, 10) <= 0)
-          newErrors[`items[${index}].quantity`] = 'Quantity must be greater than 0';
-        if (!item.price || parseFloat(item.price) <= 0)
-          newErrors[`items[${index}].price`] = 'Price must be greater than 0';
+        ['productId', 'quantity', 'price'].forEach(field => {
+          const fieldName = `items[${index}].${field}`;
+          const error = validateField(fieldName, item[field]);
+          if (error) {
+            newErrors[fieldName] = error;
+            isValid = false;
+          }
+        });
       });
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return isValid;
   };
 
+  // Validate single field on blur
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    const error = validateField(name, value);
+
+    setTouchedFields(prev => ({
+      ...prev,
+      [name]: true
+    }));
+
+    setErrors(prev => ({
+      ...prev,
+      [name]: error
+    }));
+  };
+
+  // Handle item field blur
+  const handleItemBlur = (index, field) => {
+    const fieldName = `items[${index}].${field}`;
+    const value = formData.items[index][field];
+    const error = validateField(fieldName, value);
+
+    setTouchedFields(prev => ({
+      ...prev,
+      [fieldName]: true
+    }));
+
+    setErrors(prev => ({
+      ...prev,
+      [fieldName]: error
+    }));
+  };
+
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Mark all fields as touched
+    const allTouched = {};
+    // For top-level fields
+    ['orderNumber', 'customerId', 'shippingAddress'].forEach(field => {
+      allTouched[field] = true;
+    });
+    // For items
+    formData.items.forEach((item, index) => {
+      ['productId', 'quantity', 'price'].forEach(field => {
+        allTouched[`items[${index}].${field}`] = true;
+      });
+    });
+
+    setTouchedFields(allTouched);
 
     if (!validateForm()) return;
 
     setIsSubmitting(true);
 
     try {
-      // Transform string values to appropriate types for API
+      // Transform data for API
       const apiData = {
         ...formData,
         customerId: parseInt(formData.customerId, 10),
@@ -170,10 +321,13 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
         }))
       };
 
-      onSave(apiData);
+      await onSave(apiData);
     } catch (error) {
       console.error('Error saving order:', error);
-      // Handle error (show message, etc.)
+      setErrors(prev => ({
+        ...prev,
+        form: error.message || 'Failed to save order'
+      }));
     } finally {
       setIsSubmitting(false);
     }
@@ -201,6 +355,7 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
             <button
               onClick={onCancel}
               className="text-gray-500 hover:text-gray-700"
+              aria-label="Close"
             >
               <X className="h-5 w-5" />
             </button>
@@ -212,26 +367,37 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
           </p>
         </div>
         <div className="p-4">
+          {errors.form && (
+            <div className="bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+              <div className="flex items-center">
+                <AlertCircle className="h-5 w-5 mr-2" />
+                <span>{errors.form}</span>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Order Details Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Order Number */}
               <div>
-                <label className="block text-sm font-medium mb-1">
+                <label htmlFor="orderNumber" className="block text-sm font-medium mb-1">
                   Order Number <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="orderNumber"
                   type="text"
                   name="orderNumber"
                   value={formData.orderNumber}
                   onChange={handleChange}
-                  disabled={!!existingOrder} // Can't change order number if editing
+                  onBlur={handleBlur}
+                  disabled={!!existingOrder} // Can't change order number when editing
                   placeholder="e.g., ORD1001"
                   className={`w-full p-2 border rounded-md ${
-                    errors.orderNumber ? 'border-red-500' : 'border-gray-300'
+                    touchedFields.orderNumber && errors.orderNumber ? 'border-red-500' : 'border-gray-300'
                   }`}
                 />
-                {errors.orderNumber && (
+                {touchedFields.orderNumber && errors.orderNumber && (
                   <p className="text-red-500 text-xs mt-1 flex items-center">
                     <AlertCircle className="h-3 w-3 mr-1" />
                     {errors.orderNumber}
@@ -241,20 +407,22 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
 
               {/* Customer ID */}
               <div>
-                <label className="block text-sm font-medium mb-1">
+                <label htmlFor="customerId" className="block text-sm font-medium mb-1">
                   Customer ID <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="customerId"
                   type="text"
                   name="customerId"
                   value={formData.customerId}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   placeholder="e.g., 12345"
                   className={`w-full p-2 border rounded-md ${
-                    errors.customerId ? 'border-red-500' : 'border-gray-300'
+                    touchedFields.customerId && errors.customerId ? 'border-red-500' : 'border-gray-300'
                   }`}
                 />
-                {errors.customerId && (
+                {touchedFields.customerId && errors.customerId && (
                   <p className="text-red-500 text-xs mt-1 flex items-center">
                     <AlertCircle className="h-3 w-3 mr-1" />
                     {errors.customerId}
@@ -264,10 +432,11 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
 
               {/* Status */}
               <div>
-                <label className="block text-sm font-medium mb-1">
+                <label htmlFor="status" className="block text-sm font-medium mb-1">
                   Status
                 </label>
                 <select
+                  id="status"
                   name="status"
                   value={formData.status}
                   onChange={handleChange}
@@ -283,10 +452,11 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
 
               {/* Priority Level */}
               <div>
-                <label className="block text-sm font-medium mb-1">
+                <label htmlFor="priorityLevel" className="block text-sm font-medium mb-1">
                   Priority Level
                 </label>
                 <select
+                  id="priorityLevel"
                   name="priorityLevel"
                   value={formData.priorityLevel}
                   onChange={handleChange}
@@ -302,20 +472,22 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
 
               {/* Shipping Address */}
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium mb-1">
+                <label htmlFor="shippingAddress" className="block text-sm font-medium mb-1">
                   Shipping Address <span className="text-red-500">*</span>
                 </label>
                 <textarea
+                  id="shippingAddress"
                   name="shippingAddress"
                   value={formData.shippingAddress}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   rows="3"
                   placeholder="Full shipping address"
                   className={`w-full p-2 border rounded-md ${
-                    errors.shippingAddress ? 'border-red-500' : 'border-gray-300'
+                    touchedFields.shippingAddress && errors.shippingAddress ? 'border-red-500' : 'border-gray-300'
                   }`}
                 />
-                {errors.shippingAddress && (
+                {touchedFields.shippingAddress && errors.shippingAddress && (
                   <p className="text-red-500 text-xs mt-1 flex items-center">
                     <AlertCircle className="h-3 w-3 mr-1" />
                     {errors.shippingAddress}
@@ -358,6 +530,7 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
                             type="button"
                             onClick={() => handleRemoveItem(index)}
                             className="text-red-500 hover:text-red-700"
+                            aria-label="Remove item"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -370,20 +543,25 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
                               Product <span className="text-red-500">*</span>
                             </label>
                             <select
-                              value={item.productId}
-                              onChange={(e) => handleProductSelection(index, e.target.value)}
-                              className={`w-full p-2 border rounded-md text-sm ${
-                                errors[`items[${index}].productId`] ? 'border-red-500' : 'border-gray-300'
-                              }`}
-                            >
-                              <option value="">Select a product</option>
-                              {products.map(product => (
-                                <option key={product.id} value={product.id}>
-                                  {product.name} ({product.sku})
-                                </option>
-                              ))}
-                            </select>
-                            {errors[`items[${index}].productId`] && (
+  value={item.productId || ''}
+  onChange={(e) => {
+    console.log('Product dropdown changed:', e.target.value);
+    handleProductSelection(index, e.target.value);
+  }}
+  className={`w-full p-2 border rounded-md text-sm ${
+    touchedFields[`items[${index}].productId`] &&
+    errors[`items[${index}].productId`] ? 'border-red-500' : 'border-gray-300'
+  }`}
+>
+  <option value="">Select a product</option>
+  {products.map(product => (
+    <option key={product.id} value={product.id}>
+      {product.name} ({product.sku})
+    </option>
+  ))}
+</select>
+                            {touchedFields[`items[${index}].productId`] &&
+                             errors[`items[${index}].productId`] && (
                               <p className="text-red-500 text-xs mt-1">
                                 {errors[`items[${index}].productId`]}
                               </p>
@@ -400,11 +578,14 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
                               min="1"
                               value={item.quantity}
                               onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
+                              onBlur={() => handleItemBlur(index, 'quantity')}
                               className={`w-full p-2 border rounded-md text-sm ${
+                                touchedFields[`items[${index}].quantity`] &&
                                 errors[`items[${index}].quantity`] ? 'border-red-500' : 'border-gray-300'
                               }`}
                             />
-                            {errors[`items[${index}].quantity`] && (
+                            {touchedFields[`items[${index}].quantity`] &&
+                             errors[`items[${index}].quantity`] && (
                               <p className="text-red-500 text-xs mt-1">
                                 {errors[`items[${index}].quantity`]}
                               </p>
@@ -422,12 +603,15 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
                                 type="text"
                                 value={item.price}
                                 onChange={(e) => handleItemChange(index, 'price', e.target.value)}
+                                onBlur={() => handleItemBlur(index, 'price')}
                                 className={`w-full p-2 pl-6 border rounded-md text-sm ${
+                                  touchedFields[`items[${index}].price`] &&
                                   errors[`items[${index}].price`] ? 'border-red-500' : 'border-gray-300'
                                 }`}
                               />
                             </div>
-                            {errors[`items[${index}].price`] && (
+                            {touchedFields[`items[${index}].price`] &&
+                             errors[`items[${index}].price`] && (
                               <p className="text-red-500 text-xs mt-1">
                                 {errors[`items[${index}].price`]}
                               </p>

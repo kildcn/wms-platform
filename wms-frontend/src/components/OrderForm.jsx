@@ -99,14 +99,25 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
   const handleProductSelection = (index, productId) => {
     if (!productId) return;
 
-    const selectedProduct = products.find(p => p.id.toString() === productId);
-    if (!selectedProduct) return;
+    // Convert strings to appropriate types
+    const productIdNum = parseInt(productId, 10);
 
-    handleItemChange(index, 'productId', productId);
+    // Find the product
+    const selectedProduct = products.find(p => p.id === productIdNum);
+
+    if (!selectedProduct) {
+      console.error('Product not found for ID:', productId);
+      return;
+    }
+
+    handleItemChange(index, 'productId', productIdNum);
     handleItemChange(index, 'productSku', selectedProduct.sku);
     handleItemChange(index, 'productName', selectedProduct.name);
-    // You might also set a default price if available in your product data
-  };
+
+    // Set a default price based on weight
+    const defaultPrice = parseFloat(selectedProduct.weight) * 10 + 5;
+    handleItemChange(index, 'price', defaultPrice.toFixed(2));
+  }
 
   const validateForm = () => {
     const newErrors = {};

@@ -73,15 +73,22 @@ export const createOrder = async (order) => {
 
 export const updateOrderStatus = async (orderId, status) => {
   try {
-    console.log(`Updating order ${orderId} status to ${status}`);  // Add logging
+    console.log(`Updating order ${orderId} status to ${status}`);
 
-    const response = await fetch(`${API_BASE_URL}/orders/${orderId}/status?status=${status}`, {
+    const response = await fetch(`${API_BASE_URL}/orders/${orderId}/status`, {
       method: 'PATCH',
       headers: {
-        'Accept': 'application/json',
         'Content-Type': 'application/json'
-      }
+      },
+      body: JSON.stringify({ status: status })
     });
+
+    // Handle 204 No Content response
+    if (response.status === 204) {
+      console.log(`Successfully updated order ${orderId} status to ${status}`);
+      // Return an object with the updated status since there's no response body
+      return { id: orderId, status: status };
+    }
 
     if (!response.ok) {
       const errorText = await response.text();

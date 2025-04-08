@@ -15,7 +15,7 @@ data class OrderItem(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
     @JsonBackReference // Prevent circular reference
-    val order: Order,
+    var order: Order, // Change from val to var to allow reassignment
 
     @Column(name = "product_id", nullable = false)
     val productId: Long,

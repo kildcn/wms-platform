@@ -43,29 +43,34 @@ class OrderService(
     }
 
     @Transactional
-    fun createOrder(order: Order): Order {
-        // Validate order items
-        order.items.forEach { item ->
-            val product = productRepository.findById(item.productId)
-                .orElseThrow { NoSuchElementException("Product not found with id: ${item.productId}") }
+fun createOrder(order: Order): Order {
+    // Validate order items
+    order.items.forEach { item ->
+        val product = productRepository.findById(item.productId)
+            .orElseThrow { NoSuchElementException("Product not found with id: ${item.productId}") }
 
-            if (product.stockQuantity < item.quantity) {
-                throw IllegalStateException("Not enough stock for product ${product.name} (SKU: ${product.sku})")
-            }
+        if (product.stockQuantity < item.quantity) {
+            throw IllegalStateException("Not enough stock for product ${product.name} (SKU: ${product.sku})")
         }
 
-        val savedOrder = orderRepository.save(order)
-
-        // Publish an event for the new order
-        eventPublisher.publishEvent(OrderStatusChangedEvent(
-            this,
-            savedOrder.id!!,
-            null,
-            savedOrder.status
-        ))
-
-        return savedOrder
+        // Set bidirectional relationship
+        item.order = order
     }
+
+    // Use Hibernate's cascade functionality to save the order and its items in one operation
+    // The @OneToMany relationship should have cascade = [CascadeType.ALL]
+    val savedOrder = orderRepository.save(order)
+
+    // Publish an event for the new order
+    eventPublisher.publishEvent(OrderStatusChangedEvent(
+        this,
+        savedOrder.id!!,
+        null,
+        savedOrder.status
+    ))
+
+    return savedOrder
+}
 
     @Transactional
 fun updateOrderStatus(orderId: Long, status: OrderStatus): Order {

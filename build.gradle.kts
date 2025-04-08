@@ -1,3 +1,4 @@
+// build.gradle.kts
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -37,15 +38,12 @@ dependencies {
 
     // Event Driven
     implementation("org.springframework.kafka:spring-kafka")
-
-    // Servlet API
-    implementation("javax.servlet:javax.servlet-api:4.0.1")
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        freeCompilerArgs = listOf("-Xjsr305=strict")
-        jvmTarget = "17"
+    compilerOptions {
+        freeCompilerArgs.set(listOf("-Xjsr305=strict"))
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
     }
 }
 

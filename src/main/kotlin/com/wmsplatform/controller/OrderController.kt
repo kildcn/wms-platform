@@ -1,3 +1,4 @@
+// src/main/kotlin/com/wmsplatform/controller/OrderController.kt
 package com.wmsplatform.controller
 
 import com.wmsplatform.domain.model.Order
@@ -7,10 +8,14 @@ import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.slf4j.LoggerFactory
+
 
 @RestController
 @RequestMapping("/api/orders")
 class OrderController(private val orderService: OrderService) {
+      private val logger = LoggerFactory.getLogger(OrderController::class.java)
+
 
     @GetMapping
     fun getOrdersByStatus(
@@ -66,14 +71,22 @@ class OrderController(private val orderService: OrderService) {
     @PatchMapping("/{id}/status")
     fun updateOrderStatus(
         @PathVariable id: Long,
-        @RequestParam status: OrderStatus
+        @RequestBody body: Map<String, String>
     ): ResponseEntity<Order> {
+        val status = body["status"]?.let { OrderStatus.valueOf(it) }
+            ?: return ResponseEntity.badRequest().build()
+
         return try {
             ResponseEntity.ok(orderService.updateOrderStatus(id, status))
         } catch (e: NoSuchElementException) {
+            logger.error("Order with ID $id not found", e)
             ResponseEntity.notFound().build()
         } catch (e: IllegalStateException) {
+            logger.error("Invalid state transition for order ID $id", e)
             ResponseEntity.badRequest().build()
+        } catch (e: Exception) {
+            logger.error("Unexpected error while updating order ID $id", e)
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
         }
     }
 
@@ -88,22 +101,6 @@ class OrderController(private val orderService: OrderService) {
         }
     }
 
-    @PatchMapping("/{orderId}/status")
-    fun updateOrderStatus(@PathVariable orderId: Long, @RequestParam status: String): ResponseEntity<Order> {
-        return try {
-            val orderStatus = OrderStatus.valueOf(status.uppercase())
-            val updatedOrder = orderService.updateOrderStatus(orderId, orderStatus)
-            ResponseEntity.ok(updatedOrder)
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity.badRequest().body(null) // Invalid status value
-        } catch (e: NoSuchElementException) {
-            ResponseEntity.notFound().build() // Order not found
-        }
-    }
+    // This method handles string status values from the frontend
 
-    @ExceptionHandler(IllegalStateException::class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    fun handleIllegalStateException(e: IllegalStateException): ResponseEntity<String> {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(e.message)
-    }
 }

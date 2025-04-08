@@ -68,24 +68,35 @@ class OrderService(
     }
 
     @Transactional
-    fun updateOrderStatus(orderId: Long, status: OrderStatus): Order {
-        val order = orderRepository.findById(orderId).orElseThrow {
-            NoSuchElementException("Order not found with id: $orderId")
-        }
-
-        logger.info("Updating order status: orderId=$orderId, currentStatus=${order.status}, newStatus=$status")
-
-        validateStatusTransition(order.status, status)
-
-        val updatedOrder = order.copy(
-            status = status,
-            updatedAt = LocalDateTime.now()
-        )
-
-        logger.info("Order status updated successfully: orderId=$orderId, newStatus=$status")
-
-        return orderRepository.save(updatedOrder)
+fun updateOrderStatus(orderId: Long, status: OrderStatus): Order {
+    val order = orderRepository.findById(orderId).orElseThrow {
+        NoSuchElementException("Order not found with id: $orderId")
     }
+
+    logger.info("Updating order status: orderId=$orderId, currentStatus=${order.status}, newStatus=$status")
+
+    // Validate the status transition
+    validateStatusTransition(order.status, status)
+
+    val updatedOrder = order.copy(
+        status = status,
+        updatedAt = LocalDateTime.now()
+    )
+
+    // Save the updated order
+    val savedOrder = orderRepository.save(updatedOrder)
+
+    // Publish an event for the status change
+    eventPublisher.publishEvent(OrderStatusChangedEvent(
+        this,
+        savedOrder.id!!,
+        order.status,
+        status
+    ))
+
+    logger.info("Order status updated successfully: orderId=$orderId, newStatus=$status")
+    return savedOrder
+}
 
     @Transactional
     fun cancelOrder(id: Long): Order {
@@ -117,21 +128,22 @@ class OrderService(
 
     // Ensure validateStatusTransition allows the desired transition
     private fun validateStatusTransition(oldStatus: OrderStatus, newStatus: OrderStatus) {
-        val validTransitions = mapOf(
-            OrderStatus.CREATED to listOf(OrderStatus.PROCESSING, OrderStatus.CANCELED),
-            OrderStatus.PROCESSING to listOf(OrderStatus.PICKING, OrderStatus.CANCELED),
-            OrderStatus.PICKING to listOf(OrderStatus.PACKING, OrderStatus.CANCELED),
-            OrderStatus.PACKING to listOf(OrderStatus.SHIPPED, OrderStatus.CANCELED),
-            OrderStatus.SHIPPED to listOf(OrderStatus.DELIVERED),
-            OrderStatus.DELIVERED to emptyList(),
-            OrderStatus.CANCELED to emptyList()
-        )
+    val validTransitions = mapOf(
+        OrderStatus.CREATED to listOf(OrderStatus.PROCESSING, OrderStatus.CANCELED),
+        OrderStatus.PROCESSING to listOf(OrderStatus.PICKING, OrderStatus.CANCELED),
+        OrderStatus.PICKING to listOf(OrderStatus.PACKING, OrderStatus.CANCELED),
+        OrderStatus.PACKING to listOf(OrderStatus.SHIPPED, OrderStatus.CANCELED),
+        OrderStatus.SHIPPED to listOf(OrderStatus.DELIVERED),
+        OrderStatus.DELIVERED to emptyList(),
+        OrderStatus.CANCELED to emptyList()
+    )
 
-        logger.info("Validating status transition: oldStatus=$oldStatus, newStatus=$newStatus")
+    logger.info("Validating status transition: oldStatus=$oldStatus, newStatus=$newStatus")
+    logger.info("Valid transitions for $oldStatus are: ${validTransitions[oldStatus]}")
 
-        if (newStatus !in validTransitions[oldStatus] ?: emptyList()) {
-            logger.error("Invalid status transition from $oldStatus to $newStatus")
-            throw IllegalStateException("Invalid status transition from $oldStatus to $newStatus")
-        }
+    if (newStatus !in (validTransitions[oldStatus] ?: emptyList())) {
+        logger.error("Invalid status transition from $oldStatus to $newStatus")
+        throw IllegalStateException("Invalid status transition from $oldStatus to $newStatus")
     }
+}
 }

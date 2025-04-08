@@ -161,8 +161,14 @@ const WMSApplication = () => {
   const handleSaveOrder = async (orderData) => {
     try {
       if (editingOrder) {
-        // For now, we'll just update the status since our API doesn't support full order updates
-        const updatedOrder = await orderService.updateOrderStatus(editingOrder.id, orderData.status);
+        // For updating an existing order
+        console.log("Updating order status:", orderData.status);
+
+        // Update status
+        const updatedOrder = await orderService.updateOrderStatus(
+          editingOrder.id,
+          orderData.status
+        );
 
         // Update local state
         setOrders(prevOrders =>

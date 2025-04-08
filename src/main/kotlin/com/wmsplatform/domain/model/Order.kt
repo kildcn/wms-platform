@@ -1,9 +1,10 @@
+// src/main/kotlin/com/wmsplatform/domain/model/Order.kt
 package com.wmsplatform.domain.model
 
 import jakarta.persistence.*
 import java.time.LocalDateTime
 import com.fasterxml.jackson.annotation.JsonManagedReference
-import com.fasterxml.jackson.annotation.JsonIgnore // Add this import
+import com.fasterxml.jackson.annotation.JsonIgnore
 
 @Entity
 @Table(name = "orders")
@@ -35,7 +36,7 @@ data class Order(
     @Column(name = "shipping_address", nullable = false, length = 1000)
     val shippingAddress: String,
 
-    @JsonIgnore // Prevent serialization of this field
+    @JsonIgnore
     @Column(name = "priority_level")
     val priorityLevel: Int = 0
 )

@@ -1,3 +1,4 @@
+// src/main/kotlin/com/wmsplatform/config/WebConfig.kt
 package com.wmsplatform.config
 
 import org.springframework.context.annotation.Bean
@@ -8,9 +9,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 import org.springframework.web.servlet.config.annotation.CorsRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 import org.springframework.web.filter.OncePerRequestFilter
-import javax.servlet.FilterChain
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.FilterChain
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 @Configuration
 class WebConfig : WebMvcConfigurer {
@@ -35,8 +36,9 @@ class WebConfig : WebMvcConfigurer {
         return CorsFilter(source)
     }
 
+    // Renamed the bean to avoid conflict with GlobalExceptionHandler class
     @Bean
-    fun globalExceptionHandler(): OncePerRequestFilter {
+    fun corsExceptionFilter(): OncePerRequestFilter {
         return object : OncePerRequestFilter() {
             override fun doFilterInternal(
                 request: HttpServletRequest,

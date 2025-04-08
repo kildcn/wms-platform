@@ -1,3 +1,4 @@
+// src/main/kotlin/com/wmsplatform/config/KafkaConfiguration.kt
 package com.wmsplatform.config
 
 import org.springframework.context.annotation.Bean

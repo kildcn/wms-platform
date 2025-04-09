@@ -3,7 +3,7 @@ package com.wmsplatform.domain.model
 import jakarta.persistence.*
 import java.math.BigDecimal
 import com.fasterxml.jackson.annotation.JsonBackReference
-import com.fasterxml.jackson.annotation.JsonIgnore // Add this import
+import com.fasterxml.jackson.annotation.JsonIgnore
 
 @Entity
 @Table(name = "order_items")
@@ -13,9 +13,9 @@ data class OrderItem(
     val id: Long? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false)
+    @JoinColumn(name = "order_id")  // Remove nullable=false to allow temporary null during deserialization
     @JsonBackReference // Prevent circular reference
-    var order: Order, // Change from val to var to allow reassignment
+    var order: Order? = null, // Make nullable to fix circular reference issues during deserialization
 
     @Column(name = "product_id", nullable = false)
     val productId: Long,
@@ -35,7 +35,6 @@ data class OrderItem(
     @Column(name = "is_picked", nullable = false)
     var isPicked: Boolean = false,
 
-    @JsonIgnore // Prevent serialization of this field
     @Column(name = "is_packed", nullable = false)
     var isPacked: Boolean = false
 )

@@ -21,7 +21,7 @@ data class Order(
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    val status: OrderStatus,
+    val status: OrderStatus = OrderStatus.CREATED, // Default to CREATED
 
     @OneToMany(mappedBy = "order", cascade = [CascadeType.ALL], orphanRemoval = true)
     @JsonManagedReference // Prevent circular reference
@@ -36,7 +36,6 @@ data class Order(
     @Column(name = "shipping_address", nullable = false, length = 1000)
     val shippingAddress: String,
 
-    @JsonIgnore
     @Column(name = "priority_level")
     val priorityLevel: Int = 0
 )

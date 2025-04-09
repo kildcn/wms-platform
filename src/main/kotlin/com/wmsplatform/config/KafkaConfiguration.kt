@@ -21,8 +21,18 @@ class KafkaConfiguration {
     fun kafkaTemplate(properties: KafkaProperties): KafkaTemplate<String, String> {
         logger.info("Configuring fallback-safe Kafka Template")
 
+        // Configure error handling properties
+        val producerProps = properties.buildProducerProperties()
+
+        // Add retry properties
+        producerProps["retries"] = "3"
+        producerProps["retry.backoff.ms"] = "1000"
+
+        // Configure delivery timeout
+        producerProps["delivery.timeout.ms"] = "5000"
+
         // Create a standard Kafka template, but we'll catch errors when using it
-        val factory = DefaultKafkaProducerFactory<String, String>(properties.buildProducerProperties())
+        val factory = DefaultKafkaProducerFactory<String, String>(producerProps)
         return KafkaTemplate(factory)
     }
 
@@ -32,6 +42,7 @@ class KafkaConfiguration {
     fun KafkaTemplate<String, String>.safeSend(topic: String, key: String, value: String) {
         try {
             this.send(topic, key, value)
+            logger.debug("Attempted to send message to topic $topic: [$key]")
         } catch (e: Exception) {
             logger.warn("Failed to send Kafka message to topic $topic. Logging instead: [$key] = $value", e)
         }

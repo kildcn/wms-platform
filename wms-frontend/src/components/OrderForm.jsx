@@ -1,5 +1,6 @@
+// src/components/OrderForm.jsx
 import React, { useState, useEffect } from 'react';
-import { AlertCircle, X, Plus, Trash2 } from 'lucide-react';
+import { AlertCircle, X, Plus, Trash2, Info } from 'lucide-react';
 
 const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -14,6 +15,9 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [touchedFields, setTouchedFields] = useState({});
+
+  // Flag to determine if we're in edit mode
+  const isEditMode = !!existingOrder;
 
   // Populate form when editing an existing order
   useEffect(() => {
@@ -59,6 +63,9 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
 
   // Handle item-specific field changes
   const handleItemChange = (index, field, value) => {
+    // If in edit mode, don't allow item changes
+    if (isEditMode) return;
+
     const updatedItems = [...formData.items];
     updatedItems[index] = {
       ...updatedItems[index],
@@ -89,6 +96,9 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
 
   // Add a new empty item to the order
   const handleAddItem = () => {
+    // If in edit mode, don't allow adding items
+    if (isEditMode) return;
+
     setFormData(prev => ({
       ...prev,
       items: [
@@ -106,6 +116,9 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
 
   // Remove an item from the order
   const handleRemoveItem = (index) => {
+    // If in edit mode, don't allow removing items
+    if (isEditMode) return;
+
     const updatedItems = [...formData.items];
     updatedItems.splice(index, 1);
 
@@ -127,9 +140,9 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
   };
 
   // Handle product selection and populate related fields
-  // Improved handleProductSelection function
   const handleProductSelection = (index, productId) => {
-    console.log(`Selected product ID: ${productId} for item at index: ${index}`);
+    // If in edit mode, don't allow product selection changes
+    if (isEditMode) return;
 
     if (!productId) return;
 
@@ -145,7 +158,7 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
     const updatedItems = [...formData.items];
     updatedItems[index] = {
       ...updatedItems[index],
-      productId: productId.toString(),
+      productId: productId,
       productSku: product.sku,
       productName: product.name,
       // Set default price based on weight
@@ -157,19 +170,18 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
       ...prev,
       items: updatedItems
     }));
-
-    console.log('Updated items:', updatedItems);
   };
 
   // Validate individual field
   const validateField = (name, value) => {
     // For nested fields (items array)
     if (name.startsWith('items[')) {
+      // If in edit mode, we're not validating item fields
+      if (isEditMode) return null;
+
       const match = name.match(/items\[(\d+)\]\.(\w+)/);
       if (match) {
         const [, indexStr, field] = match;
-        const index = parseInt(indexStr, 10);
-        const item = formData.items[index];
 
         switch (field) {
           case 'productId':
@@ -194,18 +206,27 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
     // For top-level fields
     switch (name) {
       case 'orderNumber':
+        // Only validate orderNumber in create mode
+        if (isEditMode) return null;
+
         if (!value.trim()) return 'Order number is required';
         if (!/^[A-Za-z0-9-]{3,}$/.test(value))
           return 'Order number must be at least 3 characters and contain only letters, numbers, and hyphens';
         return null;
 
       case 'customerId':
+        // Only validate customerId in create mode
+        if (isEditMode) return null;
+
         if (!value.trim()) return 'Customer ID is required';
         if (isNaN(parseInt(value, 10)))
           return 'Customer ID must be a number';
         return null;
 
       case 'shippingAddress':
+        // Only validate shippingAddress in create mode
+        if (isEditMode) return null;
+
         if (!value.trim()) return 'Shipping address is required';
         if (value.length < 10) return 'Please enter a complete shipping address';
         return null;
@@ -219,6 +240,14 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
   const validateForm = () => {
     const newErrors = {};
     let isValid = true;
+
+    if (isEditMode) {
+      // In edit mode, we only need to ensure a valid status is selected
+      // No validation needed since the dropdown restricts to valid values
+      return true;
+    }
+
+    // Create mode - validate all fields
 
     // Validate top-level fields
     ['orderNumber', 'customerId', 'shippingAddress'].forEach(field => {
@@ -269,6 +298,9 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
 
   // Handle item field blur
   const handleItemBlur = (index, field) => {
+    // If in edit mode, skip validation
+    if (isEditMode) return;
+
     const fieldName = `items[${index}].${field}`;
     const value = formData.items[index][field];
     const error = validateField(fieldName, value);
@@ -287,6 +319,29 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (isEditMode) {
+      // In edit mode, we're only updating the status
+      setIsSubmitting(true);
+
+      try {
+        // For editing, only send status update to match backend API
+        const statusData = { status: formData.status };
+        await onSave(statusData);
+      } catch (error) {
+        console.error('Error updating order status:', error);
+        setErrors(prev => ({
+          ...prev,
+          form: error.message || 'Failed to update order status'
+        }));
+      } finally {
+        setIsSubmitting(false);
+      }
+
+      return;
+    }
+
+    // Create mode - validate all fields
 
     // Mark all fields as touched
     const allTouched = {};
@@ -308,25 +363,28 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
     setIsSubmitting(true);
 
     try {
-      // Transform data for API
+      // For new order, prepare full order data
       const apiData = {
         ...formData,
         customerId: parseInt(formData.customerId, 10),
         priorityLevel: parseInt(formData.priorityLevel, 10),
         items: formData.items.map(item => ({
-          ...item,
           productId: parseInt(item.productId, 10),
+          productSku: item.productSku,
+          productName: item.productName,
           quantity: parseInt(item.quantity, 10),
-          price: parseFloat(item.price)
+          price: parseFloat(item.price),
+          isPicked: false,
+          isPacked: false
         }))
       };
 
       await onSave(apiData);
     } catch (error) {
-      console.error('Error saving order:', error);
+      console.error('Error creating order:', error);
       setErrors(prev => ({
         ...prev,
-        form: error.message || 'Failed to save order'
+        form: error.message || 'Failed to create order'
       }));
     } finally {
       setIsSubmitting(false);
@@ -350,7 +408,7 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
         <div className="p-4 border-b">
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-semibold">
-              {existingOrder ? 'Edit Order' : 'Create New Order'}
+              {isEditMode ? 'Update Order Status' : 'Create New Order'}
             </h2>
             <button
               onClick={onCancel}
@@ -361,8 +419,8 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
             </button>
           </div>
           <p className="text-sm text-gray-500">
-            {existingOrder
-              ? 'Update order details'
+            {isEditMode
+              ? 'You can only update the status of an existing order'
               : 'Create a new customer order'}
           </p>
         </div>
@@ -376,13 +434,22 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
             </div>
           )}
 
+          {isEditMode && (
+            <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded mb-4">
+              <div className="flex items-center">
+                <Info className="h-5 w-5 mr-2" />
+                <span>Only the order status can be updated after an order is created</span>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Order Details Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Order Number */}
               <div>
                 <label htmlFor="orderNumber" className="block text-sm font-medium mb-1">
-                  Order Number <span className="text-red-500">*</span>
+                  Order Number {!isEditMode && <span className="text-red-500">*</span>}
                 </label>
                 <input
                   id="orderNumber"
@@ -391,11 +458,11 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
                   value={formData.orderNumber}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  disabled={!!existingOrder} // Can't change order number when editing
+                  disabled={isEditMode} // Disabled in edit mode
                   placeholder="e.g., ORD1001"
                   className={`w-full p-2 border rounded-md ${
                     touchedFields.orderNumber && errors.orderNumber ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  } ${isEditMode ? 'bg-gray-100' : ''}`}
                 />
                 {touchedFields.orderNumber && errors.orderNumber && (
                   <p className="text-red-500 text-xs mt-1 flex items-center">
@@ -408,7 +475,7 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
               {/* Customer ID */}
               <div>
                 <label htmlFor="customerId" className="block text-sm font-medium mb-1">
-                  Customer ID <span className="text-red-500">*</span>
+                  Customer ID {!isEditMode && <span className="text-red-500">*</span>}
                 </label>
                 <input
                   id="customerId"
@@ -417,10 +484,11 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
                   value={formData.customerId}
                   onChange={handleChange}
                   onBlur={handleBlur}
+                  disabled={isEditMode} // Disabled in edit mode
                   placeholder="e.g., 12345"
                   className={`w-full p-2 border rounded-md ${
                     touchedFields.customerId && errors.customerId ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  } ${isEditMode ? 'bg-gray-100' : ''}`}
                 />
                 {touchedFields.customerId && errors.customerId && (
                   <p className="text-red-500 text-xs mt-1 flex items-center">
@@ -433,14 +501,16 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
               {/* Status */}
               <div>
                 <label htmlFor="status" className="block text-sm font-medium mb-1">
-                  Status
+                  Status {isEditMode && <span className="text-red-500">*</span>}
                 </label>
                 <select
                   id="status"
                   name="status"
                   value={formData.status}
                   onChange={handleChange}
-                  className="w-full p-2 border border-gray-300 rounded-md"
+                  className={`w-full p-2 border border-gray-300 rounded-md ${
+                    isEditMode ? 'bg-white border-blue-300 ring-1 ring-blue-300' : ''
+                  }`}
                 >
                   {orderStatuses.map(status => (
                     <option key={status} value={status}>
@@ -448,6 +518,11 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
                     </option>
                   ))}
                 </select>
+                {isEditMode && (
+                  <p className="text-blue-600 text-xs mt-1">
+                    Select the new status for this order
+                  </p>
+                )}
               </div>
 
               {/* Priority Level */}
@@ -460,7 +535,10 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
                   name="priorityLevel"
                   value={formData.priorityLevel}
                   onChange={handleChange}
-                  className="w-full p-2 border border-gray-300 rounded-md"
+                  disabled={isEditMode} // Disabled in edit mode
+                  className={`w-full p-2 border border-gray-300 rounded-md ${
+                    isEditMode ? 'bg-gray-100' : ''
+                  }`}
                 >
                   <option value="1">1 - Low</option>
                   <option value="2">2</option>
@@ -473,7 +551,7 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
               {/* Shipping Address */}
               <div className="md:col-span-2">
                 <label htmlFor="shippingAddress" className="block text-sm font-medium mb-1">
-                  Shipping Address <span className="text-red-500">*</span>
+                  Shipping Address {!isEditMode && <span className="text-red-500">*</span>}
                 </label>
                 <textarea
                   id="shippingAddress"
@@ -481,11 +559,12 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
                   value={formData.shippingAddress}
                   onChange={handleChange}
                   onBlur={handleBlur}
+                  disabled={isEditMode} // Disabled in edit mode
                   rows="3"
                   placeholder="Full shipping address"
                   className={`w-full p-2 border rounded-md ${
                     touchedFields.shippingAddress && errors.shippingAddress ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  } ${isEditMode ? 'bg-gray-100' : ''}`}
                 />
                 {touchedFields.shippingAddress && errors.shippingAddress && (
                   <p className="text-red-500 text-xs mt-1 flex items-center">
@@ -500,14 +579,22 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
             <div>
               <div className="flex justify-between items-center mb-2">
                 <h3 className="font-semibold">Order Items</h3>
-                <button
-                  type="button"
-                  onClick={handleAddItem}
-                  className="px-2 py-1 bg-green-100 text-green-700 rounded-md hover:bg-green-200 flex items-center"
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add Item
-                </button>
+                {!isEditMode && (
+                  <button
+                    type="button"
+                    onClick={handleAddItem}
+                    className="px-2 py-1 bg-green-100 text-green-700 rounded-md hover:bg-green-200 flex items-center"
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Item
+                  </button>
+                )}
+                {isEditMode && formData.items.length > 0 && (
+                  <span className="text-gray-500 text-sm">
+                    <Info className="h-4 w-4 inline-block mr-1" />
+                    Items cannot be modified after creation
+                  </span>
+                )}
               </div>
 
               {errors.items && typeof errors.items === 'string' && (
@@ -519,105 +606,147 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
 
               <div className="bg-gray-50 p-4 rounded-md">
                 {formData.items.length === 0 ? (
-                  <p className="text-gray-500 text-center py-4">No items added to this order yet</p>
+                  <p className="text-gray-500 text-center py-4">
+                    {isEditMode
+                      ? 'No items in this order'
+                      : 'No items added to this order yet'}
+                  </p>
                 ) : (
                   <div className="space-y-4">
                     {formData.items.map((item, index) => (
                       <div key={index} className="bg-white p-3 rounded-md border">
                         <div className="flex justify-between mb-2">
                           <h4 className="font-medium">Item #{index + 1}</h4>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveItem(index)}
-                            className="text-red-500 hover:text-red-700"
-                            aria-label="Remove item"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
+                          {!isEditMode && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveItem(index)}
+                              className="text-red-500 hover:text-red-700"
+                              aria-label="Remove item"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          )}
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                           {/* Product Selection */}
                           <div className="md:col-span-2">
                             <label className="block text-xs font-medium mb-1">
-                              Product <span className="text-red-500">*</span>
+                              Product {!isEditMode && <span className="text-red-500">*</span>}
                             </label>
-                            <select
-  value={item.productId || ''}
-  onChange={(e) => {
-    console.log('Product dropdown changed:', e.target.value);
-    handleProductSelection(index, e.target.value);
-  }}
-  className={`w-full p-2 border rounded-md text-sm ${
-    touchedFields[`items[${index}].productId`] &&
-    errors[`items[${index}].productId`] ? 'border-red-500' : 'border-gray-300'
-  }`}
->
-  <option value="">Select a product</option>
-  {products.map(product => (
-    <option key={product.id} value={product.id}>
-      {product.name} ({product.sku})
-    </option>
-  ))}
-</select>
-                            {touchedFields[`items[${index}].productId`] &&
-                             errors[`items[${index}].productId`] && (
-                              <p className="text-red-500 text-xs mt-1">
-                                {errors[`items[${index}].productId`]}
+                            {isEditMode ? (
+                              <p className="p-2 bg-gray-100 border border-gray-300 rounded-md text-sm">
+                                {item.productName} ({item.productSku})
                               </p>
+                            ) : (
+                              <>
+                                <select
+                                  value={item.productId || ''}
+                                  onChange={(e) => handleProductSelection(index, e.target.value)}
+                                  onBlur={() => handleItemBlur(index, 'productId')}
+                                  className={`w-full p-2 border rounded-md text-sm ${
+                                    touchedFields[`items[${index}].productId`] &&
+                                    errors[`items[${index}].productId`] ? 'border-red-500' : 'border-gray-300'
+                                  }`}
+                                >
+                                  <option value="">Select a product</option>
+                                  {products.map(product => (
+                                    <option key={product.id} value={product.id}>
+                                      {product.name} ({product.sku})
+                                    </option>
+                                  ))}
+                                </select>
+                                {touchedFields[`items[${index}].productId`] &&
+                                 errors[`items[${index}].productId`] && (
+                                  <p className="text-red-500 text-xs mt-1">
+                                    {errors[`items[${index}].productId`]}
+                                  </p>
+                                )}
+                              </>
                             )}
                           </div>
 
                           {/* Quantity */}
                           <div>
                             <label className="block text-xs font-medium mb-1">
-                              Quantity <span className="text-red-500">*</span>
+                              Quantity {!isEditMode && <span className="text-red-500">*</span>}
                             </label>
-                            <input
-                              type="number"
-                              min="1"
-                              value={item.quantity}
-                              onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
-                              onBlur={() => handleItemBlur(index, 'quantity')}
-                              className={`w-full p-2 border rounded-md text-sm ${
-                                touchedFields[`items[${index}].quantity`] &&
-                                errors[`items[${index}].quantity`] ? 'border-red-500' : 'border-gray-300'
-                              }`}
-                            />
-                            {touchedFields[`items[${index}].quantity`] &&
-                             errors[`items[${index}].quantity`] && (
-                              <p className="text-red-500 text-xs mt-1">
-                                {errors[`items[${index}].quantity`]}
+                            {isEditMode ? (
+                              <p className="p-2 bg-gray-100 border border-gray-300 rounded-md text-sm">
+                                {item.quantity}
                               </p>
+                            ) : (
+                              <>
+                                <input
+                                  type="number"
+                                  min="1"
+                                  value={item.quantity}
+                                  onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
+                                  onBlur={() => handleItemBlur(index, 'quantity')}
+                                  className={`w-full p-2 border rounded-md text-sm ${
+                                    touchedFields[`items[${index}].quantity`] &&
+                                    errors[`items[${index}].quantity`] ? 'border-red-500' : 'border-gray-300'
+                                  }`}
+                                />
+                                {touchedFields[`items[${index}].quantity`] &&
+                                 errors[`items[${index}].quantity`] && (
+                                  <p className="text-red-500 text-xs mt-1">
+                                    {errors[`items[${index}].quantity`]}
+                                  </p>
+                                )}
+                              </>
                             )}
                           </div>
 
                           {/* Price */}
                           <div>
                             <label className="block text-xs font-medium mb-1">
-                              Price <span className="text-red-500">*</span>
+                              Price {!isEditMode && <span className="text-red-500">*</span>}
                             </label>
-                            <div className="relative">
-                              <span className="absolute left-2 top-2 text-gray-500">$</span>
-                              <input
-                                type="text"
-                                value={item.price}
-                                onChange={(e) => handleItemChange(index, 'price', e.target.value)}
-                                onBlur={() => handleItemBlur(index, 'price')}
-                                className={`w-full p-2 pl-6 border rounded-md text-sm ${
-                                  touchedFields[`items[${index}].price`] &&
-                                  errors[`items[${index}].price`] ? 'border-red-500' : 'border-gray-300'
-                                }`}
-                              />
-                            </div>
-                            {touchedFields[`items[${index}].price`] &&
-                             errors[`items[${index}].price`] && (
-                              <p className="text-red-500 text-xs mt-1">
-                                {errors[`items[${index}].price`]}
+                            {isEditMode ? (
+                              <p className="p-2 bg-gray-100 border border-gray-300 rounded-md text-sm">
+                                ${parseFloat(item.price).toFixed(2)}
                               </p>
+                            ) : (
+                              <>
+                                <div className="relative">
+                                  <span className="absolute left-2 top-2 text-gray-500">$</span>
+                                  <input
+                                    type="text"
+                                    value={item.price}
+                                    onChange={(e) => handleItemChange(index, 'price', e.target.value)}
+                                    onBlur={() => handleItemBlur(index, 'price')}
+                                    className={`w-full p-2 pl-6 border rounded-md text-sm ${
+                                      touchedFields[`items[${index}].price`] &&
+                                      errors[`items[${index}].price`] ? 'border-red-500' : 'border-gray-300'
+                                    }`}
+                                  />
+                                </div>
+                                {touchedFields[`items[${index}].price`] &&
+                                 errors[`items[${index}].price`] && (
+                                  <p className="text-red-500 text-xs mt-1">
+                                    {errors[`items[${index}].price`]}
+                                  </p>
+                                )}
+                              </>
                             )}
                           </div>
                         </div>
+                        {isEditMode && (
+                          <div className="mt-2 text-xs">
+                            <span className={`inline-block px-2 py-1 rounded-full mr-2 ${
+                              item.isPicked ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {item.isPicked ? 'Picked' : 'Not Picked'}
+                            </span>
+                            <span className={`inline-block px-2 py-1 rounded-full ${
+                              item.isPacked ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {item.isPacked ? 'Packed' : 'Not Packed'}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -639,7 +768,10 @@ const OrderForm = ({ existingOrder, products, onSave, onCancel }) => {
                 disabled={isSubmitting}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-300"
               >
-                {isSubmitting ? 'Saving...' : existingOrder ? 'Update Order' : 'Create Order'}
+                {isSubmitting
+                  ? isEditMode ? 'Updating...' : 'Creating...'
+                  : isEditMode ? 'Update Status' : 'Create Order'
+                }
               </button>
             </div>
           </form>

@@ -134,14 +134,21 @@ export const AddInventoryForm = ({ products, locations, onSave, onCancel }) => {
     setIsSubmitting(true);
 
     try {
-      // Format data for API
+      // Format data for API - using the exact parameter names expected by the backend
       const apiData = {
         productId: parseInt(formData.productId, 10),
         quantity: parseInt(formData.quantity, 10),
-        locationId: parseInt(formData.locationId, 10),
-        batchNumber: formData.batchNumber || null,
-        expiryDate: formData.expiryDate || null
+        locationId: parseInt(formData.locationId, 10)
       };
+
+      // Only add optional fields if they have values
+      if (formData.batchNumber && formData.batchNumber.trim()) {
+        apiData.batchNumber = formData.batchNumber.trim();
+      }
+
+      if (formData.expiryDate) {
+        apiData.expiryDate = formData.expiryDate;
+      }
 
       await onSave(apiData);
     } catch (error) {
@@ -465,14 +472,15 @@ export const MoveInventoryForm = ({ inventoryItems, locations, onSave, onCancel 
     setIsSubmitting(true);
 
     try {
-      // Format data for API
-      const apiData = {
+      // Format data for API - matching the exact parameters the backend is expecting
+      const moveData = {
         inventoryItemId: parseInt(formData.inventoryItemId, 10),
         newLocationId: parseInt(formData.newLocationId, 10),
         quantity: parseInt(formData.quantity, 10)
       };
 
-      await onSave(apiData);
+      // Directly pass the parameters that onSave expects
+      await onSave(moveData);
     } catch (error) {
       console.error('Error moving inventory:', error);
       setErrors(prev => ({

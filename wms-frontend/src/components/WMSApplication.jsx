@@ -245,20 +245,21 @@ const WMSApplication = () => {
   const handleSaveOrder = async (orderData) => {
     try {
       if (editingOrder) {
-        // Update existing order status
+        // When editing an order, we only update its status
+        // The orderData will contain just the status property
         const updatedOrder = await orderService.updateOrderStatus(
           editingOrder.id,
           orderData.status
         );
 
-        // Update orders list
+        // Update orders list with the updated status only
         setOrders(prevOrders =>
-          prevOrders.map(o => o.id === editingOrder.id ? { ...o, status: updatedOrder.status } : o)
+          prevOrders.map(o => o.id === editingOrder.id ? { ...o, status: orderData.status } : o)
         );
 
-        showToast(`Order ${editingOrder.orderNumber} updated to status: ${updatedOrder.status}`);
+        showToast(`Order ${editingOrder.orderNumber} updated to status: ${orderData.status}`);
       } else {
-        // Create new order
+        // Create new order with all details
         const newOrder = await orderService.createOrder(orderData);
 
         // Add to orders list

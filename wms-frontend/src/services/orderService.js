@@ -66,7 +66,7 @@ export const getOrdersByCustomer = async (customerId) => {
   }
 };
 
-export const getHighPriorityOrders = async (minPriority = 5) => {
+export const getHighPriorityOrders = async (minPriority = 4) => {
   try {
     const response = await fetch(`${API_BASE_URL}/orders/priority?minPriority=${minPriority}`);
     if (!response.ok) throw new Error('Failed to fetch high priority orders');
@@ -84,7 +84,19 @@ export const createOrder = async (order) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(order)
     });
-    if (!response.ok) throw new Error('Failed to create order');
+
+    if (!response.ok) {
+      // Try to get a more detailed error message
+      let errorMsg = 'Failed to create order';
+      try {
+        const errorData = await response.json();
+        errorMsg = errorData.message || errorMsg;
+      } catch (e) {
+        // If we can't parse JSON, use the default message
+      }
+      throw new Error(errorMsg);
+    }
+
     return await response.json();
   } catch (error) {
     console.error('Error creating order:', error);
@@ -92,35 +104,30 @@ export const createOrder = async (order) => {
   }
 };
 
-// Improved order status update function with timeout handling
 export const updateOrderStatus = async (orderId, status) => {
   try {
     console.log(`Updating order ${orderId} status to ${status}...`);
 
-    // Set a timeout for the fetch request
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 second timeout
-
-    console.log(`Sending request to: ${API_BASE_URL}/orders/${orderId}/status`);
-    console.log(`Request body: ${JSON.stringify({ status: status })}`);
+    // The backend expects a JSON object with a "status" property
+    const statusData = { status: status };
 
     const response = await fetch(`${API_BASE_URL}/orders/${orderId}/status`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ status: status }),
-      signal: controller.signal
+      body: JSON.stringify(statusData)
     });
 
-    clearTimeout(timeoutId);
-    console.log(`Response received with status: ${response.status}`);
-
-    // Don't proceed with success path for error responses
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`Error updating order status: ${errorText || 'No error details provided'}`);
-      throw new Error(`Failed to update order status: ${response.status} ${response.statusText}`);
+      let errorMsg = `Failed to update order status: ${response.status} ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMsg = errorData.message || errorMsg;
+      } catch (e) {
+        // If we can't parse JSON, use the default message
+      }
+      throw new Error(errorMsg);
     }
 
     // Handle 204 No Content response
@@ -128,16 +135,14 @@ export const updateOrderStatus = async (orderId, status) => {
       return { id: orderId, status: status };
     }
 
+    // Parse the response if possible
     try {
       return await response.json();
     } catch (e) {
-      // If we can't parse JSON but the request was successful, return the status update object
+      // If we can't parse JSON but the request was successful, return the status object
       return { id: orderId, status: status };
     }
   } catch (error) {
-    if (error.name === 'AbortError') {
-      throw new Error('Request timed out. The server is taking too long to respond.');
-    }
     console.error(`Error updating status for order ID ${orderId}:`, error);
     throw error;
   }
@@ -148,7 +153,23 @@ export const cancelOrder = async (orderId) => {
     const response = await fetch(`${API_BASE_URL}/orders/${orderId}/cancel`, {
       method: 'POST'
     });
-    if (!response.ok) throw new Error(`Failed to cancel order with ID: ${orderId}`);
+
+    if (!response.ok) {
+      let errorMsg = `Failed to cancel order with ID: ${orderId}`;
+      try {
+        const errorData = await response.json();
+        errorMsg = errorData.message || errorMsg;
+      } catch (e) {
+        // If we can't parse JSON, use the default message
+      }
+      throw new Error(errorMsg);
+    }
+
+    // If the request was successful but there's no response body, return a default object
+    if (response.status === 204) {
+      return { id: orderId, status: 'CANCELED' };
+    }
+
     return await response.json();
   } catch (error) {
     console.error(`Error canceling order with ID ${orderId}:`, error);

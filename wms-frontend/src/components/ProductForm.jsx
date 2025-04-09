@@ -1,3 +1,4 @@
+// src/components/ProductForm.jsx
 import React, { useState, useEffect } from 'react';
 import { AlertCircle, X } from 'lucide-react';
 
